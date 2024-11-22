@@ -1,2 +1,2 @@
 # ProgettoArchitetture
-Preduzione struttura terziaria delle proteine
+Predizione struttura terziaria delle proteine
