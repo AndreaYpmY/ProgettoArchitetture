@@ -294,7 +294,7 @@ type sen(type x){
 	return x-((x*x*x)/6)+((x*x*x*x*x)/120)-((x*x*x*x*x*x*x)/5040);
 }
 
-void rotation(VECTOR *axis, type theta,  type** matrix){
+void rotation(VECTOR axis, type theta,  type** matrix){
 	const int n=3;
 	type ps = p(axis, axis, n);
 	for(int k=0; k<n; k++)
@@ -332,9 +332,9 @@ void prod_mat(type* a, type** b, type* ris, int n){
 			ris[i]+=a[j]*b[i][j];
 		}
 	}
-}  // r1 =1; c1= 3; r2= 3; c2= 3;
-	// Si c1==r2;
-// r=1; c=3; 
+}  
+
+
 
 
 
@@ -350,29 +350,107 @@ void backbone(char* s, VECTOR phi, VECTOR psi, type*** coords){
 	type theta_c_n_ca=2.124;
 	type theta_n_ca_c=1.940;
 	
-	
-	coords[0][0] = [0,0,0]; //N
-	coords[0][1] = [r_ca_n,0,0]; //C alpha 
-	// coords[0][2] = v3; //C
+	/*
+		Struttura coords:
+			coords[A][B][C] = ...
+			A: indice amminoacido 
+			B: indice atomo: 0=N, 1=C alpha, 2=C
+			C: coordinata: 0=x, 1=y, 2=z
+	*/
 
-	
+	//N
+	coords[0][0][0] = 0; 
+	coords[0][0][1] = 0;
+	coords[0][0][2] = 0;
 
-	
+	//C alpha
+	coords[0][1][0] = r_ca_n;
+	coords[0][1][1] = 0;
+	coords[0][1][2] = 0;
+
+	// Vettori e matrici utilizzati
+	type* v1;
+	type* v2;
+	type* v3;
+	type** rot;
+	type* newv;
 	
 	for (int i = 0; i <n; i++){
 
 		if(i>0){
-			// Posiziona N usando l'ultimo C
+			//		Posiziona N usando l'ultimo C
 			
-			type* v1;
-			C = coords[i-1][2]
-			C_alpha = coords[i-2][1]
+			// [i-1] indice amminoacido precedente, atomi C alpha e C, coordinate x,y,z
+			v1[0] = coords[i-1][2][0]-coords[i-1][1][0]; 
+			v1[1] = coords[i-1][2][1]-coords[i-1][1][1];
+			v1[2] = coords[i-1][2][2]-coords[i-1][1][2];
+			
+			// calcola norma
+			type norma_v1 = norma(v1, 3);
+			for(int j=0; j<3; j++){
+				v1[j] = v1[j]/norma_v1;
+			}
 
-			//Posiziona C alpha usando phi
+			//rotazione
+			rotation(v1, theta_ca_c_n, rot);
+
+			//moltiplicazione matriciale
+			prod_mat(v1, rot, newv, 3);
+
+			//posiziona N con le coordinate calcolate
+			coords[i][0][0] = coords[i-1][2][0]+newv[0];
+			coords[i][0][1] = coords[i-1][2][1]+newv[1];
+			coords[i][0][2] = coords[i-1][2][2]+newv[2];
+
+
+			//		Posiziona C alpha usando phi
+
+			// [i] indice amminoacido corrente, atomi N e C alpha, coordinate x,y,z
+			v2[0] = coords[i][0][0]-coords[i-1][2][0];
+			v2[1] = coords[i][0][1]-coords[i-1][2][1];
+			v2[2] = coords[i][0][2]-coords[i-1][2][2];
+
+			// calcola norma
+			type norma_v2 = norma(v2, 3);
+			for(int j=0; j<3; j++){
+				v2[j] = v2[j]/norma_v2;
+			}
+
+			//rotazione
+			rotation(v2, phi[i], rot);
+
+			//moltiplicazione matriciale
+			prod_mat(v2, rot, newv, 3);
+
+			//posiziona C alpha con le coordinate calcolate
+			coords[i][1][0] = coords[i][0][0]+newv[0];
+			coords[i][1][1] = coords[i][0][1]+newv[1];
+			coords[i][1][2] = coords[i][0][2]+newv[2];
 		}
 
-		// Posiziona C usasndo psi
+		//		Posiziona C usasndo psi
 
+		// [i] indice amminoacido corrente, atomi N e C alpha, coordinate x,y,z
+		v3[0] = coords[i][1][0]-coords[i][0][0];
+		v3[1] = coords[i][1][1]-coords[i][0][1];
+		v3[2] = coords[i][1][2]-coords[i][0][2];	
+
+		// calcola norma
+		type norma_v3 = norma(v3, 3);
+		for(int j=0; j<3; j++){
+			v3[j] = v3[j]/norma_v3;
+		}
+
+		//rotazione
+		rotation(v3, psi[i], rot);
+
+		//moltiplicazione matriciale
+		prod_mat(v3, rot, newv, 3);
+
+		//posiziona C con le coordinate calcolate
+		coords[i][2][0] = coords[i][1][0]+newv[0];
+		coords[i][2][1] = coords[i][1][1]+newv[1];
+		coords[i][2][2] = coords[i][1][2]+newv[2];
 	}
 }
 
