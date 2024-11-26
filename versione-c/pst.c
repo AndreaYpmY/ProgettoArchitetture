@@ -294,7 +294,7 @@ type sen(type x){
 	return x-((x*x*x)/6)+((x*x*x*x*x)/120)-((x*x*x*x*x*x*x)/5040);
 }
 
-void rotation(VECTOR axis, type theta,  type** matrix){
+void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	const int n=3;
 	type ps = p(axis, axis, n);
 	for(int k=0; k<n; k++)
@@ -304,16 +304,16 @@ void rotation(VECTOR axis, type theta,  type** matrix){
 	type c= -1*axis[1]*sen((theta/2.0));
 	type d= -1*axis[2]*sen((theta/2.0));
 
-
-	matrix[0][0]=a*a+b*b-c*c-d*d;
-	matrix[0][1]=2*(b*c+a*d);
-	matrix[0][2]=2*(b*d-a*c);
-	matrix[1][0]=2*(b*c-a*d);
-	matrix[1][1]=a*a+c*c-b*b-d*d;
-	matrix[1][2]=2*(c*d+a*b);
-	matrix[2][0]=2*(b*d+a*c);
-	matrix[2][1]=2*(c*d-a*b);
-	matrix[2][2]=a*a+d*d-b*b-c*c;
+	
+	matrix[0]=a*a+b*b-c*c-d*d;
+	matrix[1]=2*(b*c+a*d);
+	matrix[2]=2*(b*d-a*c);
+	matrix[3]=2*(b*c-a*d);
+	matrix[4]=a*a+c*c-b*b-d*d;
+	matrix[5]=2*(c*d+a*b);
+	matrix[6]=2*(b*d+a*c);
+	matrix[7]=2*(c*d-a*b);
+	matrix[8]=a*a+d*d-b*b-c*c;
 }
 
 type norma(type* v, int n){
@@ -339,7 +339,7 @@ void prod_mat(type* a, type** b, type* ris, int n){
 
 
 // s: sequenza di amminoacidi
-void backbone(char* s, VECTOR phi, VECTOR psi, type** coords){
+void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	int n = 256; // lunghezza sequenza
 	type r_ca_n = 1.46; //distanza CA-N
 	type r_ca_c = 1.52; //distanza CA-C
@@ -362,23 +362,33 @@ void backbone(char* s, VECTOR phi, VECTOR psi, type** coords){
 			B: coordinata: 0=x, 1=y, 2=z
 			pos. 0: 1° amminoacido
 			pos. 3: 2° amminoacido
+
+			coords[A] = ...
+			A: indice amminoacio (ogni 9)  + indice atomo + coordinata 
+			pos. 0: 1° amminoacido, atomo N, coordinata x
+			pos. 1: 1° amminoacido, atomo N, coordinata y
+			pos. 2: 1° amminoacido, atomo N, coordinata z
+			pos. 3: 1° amminoacido, atomo C alpha, coordinata x
+			- - -
+			pos. 9: 2° amminoacido, atomo N, coordinata x
+			pos. 10: 2° amminoacido, atomo N, coordinata y
 	*/
 
 	//N
-	coords[0][0] = 0; 
-	coords[0][1] = 0;
-	coords[0][2] = 0;
+	coords[0] = 0; 
+	coords[1] = 0;
+	coords[2] = 0;
 
 	//C alpha
-	coords[1][0] = r_ca_n;
-	coords[1][1] = 0;
-	coords[1][2] = 0;
+	coords[3] = r_ca_n;
+	coords[4] = 0;
+	coords[5] = 0;
 
 	// Vettori e matrici utilizzati
 	type* v1;
 	type* v2;
 	type* v3;
-	type** rot;
+	MATRIX rot;
 	type* newv;
 	
 	v1 = alloc_matrix(3,1);
@@ -389,15 +399,15 @@ void backbone(char* s, VECTOR phi, VECTOR psi, type** coords){
 
 	
 	for (int i = 0; i <n; i++){
-		int idx= i*3;
+		int idx= i*9;
 
 		if(i>0){
 			//		Posiziona N usando l'ultimo C
 			
 			// [i-1] indice amminoacido precedente, atomi C alpha e C, coordinate x,y,z
-			v1[0] = coords[idx-1][0]-coords[idx-2][0]; 
-			v1[1] = coords[idx-1][1]-coords[idx-2][1];
-			v1[2] = coords[idx-1][2]-coords[idx-2][2];
+			v1[0] = coords[idx-3]-coords[idx-6]; 
+			v1[1] = coords[idx-2]-coords[idx-5];
+			v1[2] = coords[idx-1]-coords[idx-4];
 			
 			// calcola norma
 			type norma_v1 = norma(v1, 3);
@@ -412,17 +422,17 @@ void backbone(char* s, VECTOR phi, VECTOR psi, type** coords){
 			prod_mat(v1, rot, newv, 3);
 
 			//posiziona N con le coordinate calcolate
-			coords[idx][0] = coords[idx-1][0]+newv[0];
-			coords[idx][1] = coords[idx-1][1]+newv[1];
-			coords[idx][2] = coords[idx-1][2]+newv[2];
+			coords[idx] = coords[idx-3]+newv[0];
+			coords[idx+1] = coords[idx-2]+newv[1];
+			coords[idx+2] = coords[idx-1]+newv[2];
 
 
 			//		Posiziona C alpha usando phi
 
 			// [i] indice amminoacido corrente, atomi N e C alpha, coordinate x,y,z
-			v2[0] = coords[idx][0]-coords[idx-1][0];
-			v2[1] = coords[idx][1]-coords[idx-1][1];
-			v2[2] = coords[idx][2]-coords[idx-1][2];
+			v2[0] = coords[idx]-coords[idx-3];
+			v2[1] = coords[idx+1]-coords[idx-2];
+			v2[2] = coords[idx+2]-coords[idx-1];
 
 			// calcola norma
 			type norma_v2 = norma(v2, 3);
@@ -437,17 +447,17 @@ void backbone(char* s, VECTOR phi, VECTOR psi, type** coords){
 			prod_mat(v2, rot, newv, 3);
 
 			//posiziona C alpha con le coordinate calcolate
-			coords[idx+1][1] = coords[idx][0]+newv[0];
-			coords[idx+1][1] = coords[idx][1]+newv[1];
-			coords[idx+1][1] = coords[idx][2]+newv[2];
+			coords[idx+3] = coords[idx]+newv[0];
+			coords[idx+4] = coords[idx+1]+newv[1];
+			coords[idx+5] = coords[idx+2]+newv[2];
 		}
 
 		//		Posiziona C usasndo psi
 
 		// [i] indice amminoacido corrente, atomi N e C alpha, coordinate x,y,z
-		v3[0] = coords[idx+1][0]-coords[idx][0];
-		v3[1] = coords[idx+1][1]-coords[idx][1];
-		v3[2] = coords[idx+1][2]-coords[idx][2];	
+		v3[0] = coords[idx+3]-coords[idx];
+		v3[1] = coords[idx+4]-coords[idx+1];
+		v3[2] = coords[idx+5]-coords[idx+2];	
 
 		// calcola norma
 		type norma_v3 = norma(v3, 3);
@@ -462,9 +472,9 @@ void backbone(char* s, VECTOR phi, VECTOR psi, type** coords){
 		prod_mat(v3, rot, newv, 3);
 
 		//posiziona C con le coordinate calcolate
-		coords[idx+2][0] = coords[idx+1][0]+newv[0];
-		coords[idx+2][1] = coords[idx+1][1]+newv[1];
-		coords[idx+2][2] = coords[idx+1][2]+newv[2];
+		coords[idx+6] = coords[idx+3]+newv[0];
+		coords[idx+7] = coords[idx+4]+newv[1];
+		coords[idx+8] = coords[idx+5]+newv[2];
 	}
 }
 
@@ -503,7 +513,16 @@ type dist(VECTOR A1, VECTOR A2){
 	return norma_euclidea(A1, A2, 3);
 }
 
-type hydrophobicity_energy(char* s, type** coords, int n){
+VECTOR get_C_alpha(MATRIX coords, int index){
+	VECTOR c_alpha;
+	c_alpha = alloc_matrix(3,1); // x,y,z
+	c_alpha[0] = coords[index+3];
+	c_alpha[1] = coords[index+4];
+	c_alpha[2] = coords[index+5];
+	return c_alpha;
+}
+
+type hydrophobicity_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
 
 	VECTOR c_alpha_i;
@@ -513,11 +532,11 @@ type hydrophobicity_energy(char* s, type** coords, int n){
 	c_alpha_j =alloc_matrix(3,1);
 
 
-	for(int i=1; i < n; i+=3){
-		for(int j=i+3; j<n; j+=3){
+	for(int i=0; i < n; i+=9){
+		for(int j=i+9; j<n; j+=9){
 			
-			c_alpha_i = coords[i];
-			c_alpha_j = coords[j];
+			c_alpha_i = get_C_alpha(coords, i);
+			c_alpha_j = get_C_alpha(coords, j);
 			type distanza=dist(c_alpha_i, c_alpha_j);
 			if(distanza < 10.0){
 				int index_i = s[i] - 'A';
@@ -529,7 +548,7 @@ type hydrophobicity_energy(char* s, type** coords, int n){
 	return energy;
 }
 
-type electrostatic_energy(char* s, type** coords, int n){
+type electrostatic_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
 
 	VECTOR c_alpha_i;
@@ -538,10 +557,10 @@ type electrostatic_energy(char* s, type** coords, int n){
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
 
-	for(int i=1; i<n;i+=3){
-		for(int j=i+3; j<n; j+=3){
-			c_alpha_i = coords[i];
-			c_alpha_j = coords[j];
+	for(int i=0; i<n;i+=9){
+		for(int j=i+9; j<n; j+=9){
+			c_alpha_i = get_C_alpha(coords, i);
+			c_alpha_j = get_C_alpha(coords, j);
 			type distanza=dist(c_alpha_i, c_alpha_j);
 
 			int index_i = s[i] - 'A';
@@ -556,7 +575,7 @@ type electrostatic_energy(char* s, type** coords, int n){
 	return energy;
 }
 
-type packing_energy(char* s, type** coords, int n){
+type packing_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
 
 	VECTOR c_alpha_i;
@@ -567,16 +586,16 @@ type packing_energy(char* s, type** coords, int n){
 
 
 
-	for(int i=1; i<n; i+=3){
+	for(int i=0; i<n; i+=9){
 
 		int index_i = s[i] - 'A';
 		type density=0.0;
 
-		for(int j=1; j<n; j+=3){
+		for(int j=0; j<n; j+=9){
 
 			int index_j = s[j] - 'A';
-			c_alpha_i = coords[i];
-			c_alpha_j = coords[j];
+			c_alpha_i = get_C_alpha(coords, i);
+			c_alpha_j = get_C_alpha(coords, j);
 			type distanza=dist(c_alpha_i, c_alpha_j);
 
 			if(i!=j && distanza < 10.0){
@@ -590,7 +609,7 @@ type packing_energy(char* s, type** coords, int n){
 }
 
 type energy(char* s, VECTOR phi, VECTOR psi, int n){
-	type **coords;
+	MATRIX coords;
 	coords = alloc_matrix(n*3,3);
 
 	backbone(s, phi, psi, coords);
