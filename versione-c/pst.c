@@ -325,14 +325,15 @@ type norma(type* v, int n){
 }
 
 // moltiplicazione matriciale
-void prod_mat(type* a, type** b, type* ris, int n){ 
-	for(int i=0; i<n;i++){
-		ris[i]=0;
-		for(int j=0; j<n; j++){
-			ris[i]+=a[j]*b[i][j];
+void prod_mat(type* a, MATRIX b, type* ris, int n){ 
+	for (int i = 0; i < 3; i++){
+		ris[i] = 0;
+		for (int j = 0; j < 3; j++){
+			ris[i] += a[j] * b[j * 3 + i];
 		}
 	} 
-}  
+} 
+
 
 
 
@@ -826,7 +827,7 @@ int main(int argc, char** argv) {
 	}
 
 	// COMMENTARE QUESTA RIGA!
-	prova(input);
+	//prova(input);
 	//
 
 	//
