@@ -850,8 +850,8 @@ int main(int argc, char** argv) {
 	save_out(fname_phi, input->phi, input->N);
 	sprintf(fname_psi, "out32_%d_%d_psi.ds2", input->N, input->sd);
 	save_out(fname_psi, input->psi, input->N);
-	if(input->display){
-		if(input->phi == NULL || input->psi)
+	if(input->display){	
+		if(input->phi == NULL || input->psi == NULL)
 			printf("out: NULL\n");
 		else{
 			int i,j;
