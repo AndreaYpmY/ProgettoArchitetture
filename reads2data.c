@@ -63,16 +63,41 @@ MATRIX load_data(char* filename, int *n, int *k) {
 	
 	return data;
 }
+void save_to_txt(const char* filename, MATRIX data, int rows, int cols) {
+    FILE* fp = fopen(filename, "w");
+    if (fp == NULL) {
+        printf("Errore nell'apertura del file '%s' per la scrittura!\n", filename);
+        exit(1);
+    }
+
+    // Scrive la matrice nel file
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            fprintf(fp, "%.5f ", data[i * cols + j]);  // Stampa con 5 cifre decimali
+        }
+        fprintf(fp, "\n");  // Nuova riga dopo ogni riga della matrice
+    }
+
+    fclose(fp);
+    printf("Dati salvati con successo nel file '%s'.\n", filename);
+}
 
 int main(int argc, char** argv){
     int n=256;
     int k=1;
+	
+
     MATRIX data = load_data(argv[1], &n, &k);
     
+	/* Stampare a video la matrice 
     for(int i=0; i<n; i++){
         printf("%f ", data[i]);
         printf("\n");
-    }
+    }*/
+	save_to_txt("ds2.txt", data, n, k);
+
+	//dealloco la memoria
+	dealloc_matrix(data);
     
     return 0;
 }
