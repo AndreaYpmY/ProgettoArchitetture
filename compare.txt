@@ -1,0 +1,258 @@
+Confronto delle righe:
+Divergente: -2.29429 != 0.38566
+Uguale: -1.72798
+Divergente: 3.53793 != -0.67172
+Divergente: -2.47814 != -0.35225
+Uguale: -1.35063
+Uguale: -2.23191
+Divergente: 1.60697 != 0.39932
+Uguale: 2.29134
+Uguale: 2.48438
+Divergente: -2.28890 != -4.27662
+Divergente: -1.44011 != -3.11639
+Uguale: -0.24768
+Uguale: -2.03372
+Uguale: 0.79273
+Uguale: 2.79522
+Uguale: 2.17451
+Divergente: -2.42659 != -3.07878
+Uguale: -1.52631
+Uguale: -2.88553
+Uguale: -0.35219
+Divergente: 0.39642 != -2.04554
+Uguale: -0.83868
+Uguale: -2.77202
+Uguale: 0.39228
+Uguale: -2.30003
+Uguale: 2.37936
+Divergente: 0.43005 != -1.91133
+Uguale: 0.13373
+Uguale: -1.84174
+Uguale: 2.31708
+Uguale: 1.69939
+Uguale: 1.68552
+Uguale: -2.55249
+Divergente: 1.70567 != -2.11393
+Uguale: -1.80832
+Uguale: -0.76152
+Uguale: -1.20424
+Uguale: 1.73260
+Uguale: -1.61177
+Uguale: -1.86145
+Uguale: -3.10040
+Uguale: -1.58657
+Divergente: -0.78854 != 1.03246
+Uguale: -1.99253
+Divergente: 4.01367 != 2.34775
+Uguale: 0.68609
+Uguale: -2.95960
+Uguale: 2.41057
+Uguale: 2.30138
+Uguale: -2.70354
+Uguale: -1.08322
+Divergente: -1.00258 != -2.88575
+Divergente: 1.35843 != -0.40063
+Uguale: -0.71364
+Uguale: 0.64812
+Uguale: 0.44094
+Uguale: -1.47588
+Divergente: -4.00656 != -2.06343
+Uguale: -2.56692
+Divergente: -0.17602 != 1.98372
+Divergente: -2.88794 != -1.82541
+Uguale: 2.27406
+Divergente: -3.34789 != 0.22075
+Divergente: -2.40301 != -2.29883
+Uguale: -2.98146
+Divergente: -1.75622 != -0.29882
+Divergente: 1.96156 != 0.08124
+Uguale: -1.04411
+Uguale: -1.70782
+Uguale: 1.61106
+Divergente: -0.84393 != 0.23603
+Divergente: -1.25124 != -1.66662
+Uguale: -3.11710
+Uguale: -1.87310
+Divergente: 1.98969 != -0.51755
+Uguale: 2.37224
+Uguale: 1.95459
+Uguale: -0.33557
+Divergente: 1.93799 != 1.64122
+Divergente: -1.97085 != 1.11438
+Uguale: 0.10248
+Uguale: -2.58359
+Uguale: 1.37022
+Divergente: 4.88360 != 2.84345
+Divergente: 2.76305 != -0.15564
+Uguale: -1.12325
+Uguale: 0.14280
+Uguale: 1.51007
+Uguale: -0.04509
+Divergente: 3.10896 != 0.71747
+Divergente: -2.37957 != -1.80754
+Divergente: -2.02109 != 0.20857
+Divergente: -0.15007 != -2.83368
+Divergente: 2.82737 != -0.29805
+Divergente: 2.68457 != 1.05133
+Divergente: -2.81523 != 0.01006
+Divergente: 2.54472 != -0.23860
+Uguale: -2.00903
+Uguale: 2.10754
+Divergente: -2.30468 != -0.90982
+Uguale: 2.74362
+Divergente: 2.26536 != -0.79802
+Uguale: -0.82971
+Uguale: 2.76812
+Uguale: 0.47048
+Uguale: 1.79433
+Uguale: 1.99877
+Uguale: -0.71653
+Divergente: -4.63443 != -1.68283
+Divergente: 2.28184 != 0.49839
+Uguale: -2.74374
+Uguale: 1.56125
+Divergente: 1.05639 != 0.06197
+Uguale: 1.76807
+Uguale: 1.26310
+Divergente: -3.32646 != -2.24084
+Uguale: -2.49678
+Divergente: -2.85140 != -1.73570
+Uguale: 2.41082
+Divergente: 2.67322 != 0.59973
+Divergente: 2.34107 != 2.12336
+Divergente: -2.02817 != -2.53832
+Divergente: -2.14175 != -2.33329
+Uguale: -1.16830
+Uguale: 0.30523
+Divergente: 1.85963 != 1.59124
+Uguale: 1.98336
+Divergente: -0.29164 != -0.46539
+Uguale: 2.99220
+Divergente: -1.23280 != 0.94931
+Uguale: 0.54527
+Uguale: 2.59423
+Divergente: -1.84253 != -2.99030
+Divergente: 0.55711 != 2.85715
+Uguale: 2.22075
+Uguale: 0.62176
+Uguale: 1.50988
+Uguale: 1.07793
+Uguale: 3.04683
+Uguale: 2.96865
+Uguale: -1.56527
+Uguale: -2.83851
+Uguale: 1.38830
+Uguale: 2.63271
+Uguale: 2.07115
+Divergente: -1.27941 != -0.61404
+Uguale: -2.74972
+Uguale: 2.71597
+Uguale: 0.91571
+Uguale: 2.80269
+Divergente: -1.97845 != 0.17411
+Uguale: -0.10252
+Uguale: -2.87722
+Uguale: 0.98241
+Divergente: 0.41989 != 1.87077
+Uguale: 0.56960
+Divergente: 1.86018 != 2.69717
+Uguale: 0.71253
+Divergente: -1.24514 != -2.86363
+Divergente: 2.59656 != -0.44895
+Uguale: -1.47975
+Divergente: -2.50062 != 0.82323
+Divergente: -2.76815 != -0.99632
+Uguale: -1.32846
+Divergente: -0.97274 != 0.53879
+Divergente: -3.58125 != -2.62142
+Divergente: 1.77436 != 2.43490
+Uguale: -1.09292
+Uguale: 2.30236
+Uguale: 2.34013
+Uguale: -1.26587
+Uguale: -2.40451
+Uguale: 2.64322
+Uguale: -3.01916
+Uguale: -2.91339
+Divergente: 1.57278 != 3.52439
+Divergente: -0.76183 != -0.36776
+Uguale: -2.52152
+Uguale: 1.14716
+Uguale: -2.59364
+Uguale: -2.86042
+Divergente: -3.38415 != -1.82033
+Uguale: 0.44543
+Uguale: -2.59604
+Divergente: -0.15424 != 2.30368
+Divergente: -0.82539 != 0.62790
+Uguale: 1.11515
+Divergente: -2.75596 != -1.13747
+Uguale: 3.02873
+Uguale: 1.39312
+Uguale: 1.55517
+Uguale: -1.59261
+Divergente: -3.45838 != -1.30169
+Uguale: -2.58274
+Divergente: 1.67723 != 0.22052
+Uguale: 2.75514
+Divergente: -1.35830 != -3.67476
+Divergente: 1.05229 != -0.48618
+Divergente: -1.47938 != 1.04062
+Divergente: -4.67774 != -2.19753
+Uguale: -1.28764
+Divergente: -0.54886 != 0.39635
+Divergente: -1.34958 != -1.46045
+Uguale: -1.78602
+Uguale: 0.51879
+Uguale: -1.23224
+Uguale: 2.92836
+Uguale: -2.99056
+Divergente: -2.78918 != -0.61217
+Uguale: 0.93392
+Divergente: -2.44261 != -4.06548
+Uguale: -0.33099
+Divergente: 0.76122 != 2.25519
+Uguale: 1.14441
+Divergente: -2.28426 != 0.21456
+Divergente: -1.35267 != 1.41727
+Divergente: -2.06136 != -2.82258
+Uguale: -1.81188
+Divergente: -2.12376 != -2.86179
+Divergente: -2.33509 != -2.93544
+Uguale: 2.72282
+Uguale: 1.83498
+Uguale: -1.38646
+Divergente: -1.34401 != 1.63884
+Uguale: 2.39383
+Uguale: 1.97565
+Divergente: -3.91163 != -1.73047
+Uguale: -2.10606
+Divergente: 0.48496 != -1.65212
+Divergente: -4.18642 != -0.06825
+Divergente: -3.74722 != -1.16200
+Uguale: 0.20183
+Uguale: -2.81349
+Divergente: -1.51076 != 0.51914
+Uguale: 1.55741
+Uguale: 0.84689
+Uguale: 2.42849
+Uguale: 1.34417
+Divergente: -1.92245 != 0.99792
+Divergente: -2.50149 != -1.32527
+Uguale: -0.86350
+Uguale: 1.69690
+Uguale: 1.48533
+Uguale: -1.74990
+Divergente: -3.06415 != -0.30029
+Uguale: -1.44171
+Uguale: 2.80897
+Divergente: 1.52487 != 0.01873
+Divergente: -0.80350 != -2.35412
+Divergente: 1.22884 != 3.08877
+Divergente: -2.63837 != 0.22488
+Divergente: 2.41215 != -0.53077
+Uguale: 1.78216
+Divergente: 1.84350 != 1.98001
+Divergente: -0.99206 != 1.26681
+Divergente: -4.76273 != 1.03439
+Righe differenti: 102/256

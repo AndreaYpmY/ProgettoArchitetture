@@ -287,10 +287,10 @@ type p(type *a, type *b, int n){
 	return ris;
 }
 
-type cos(type x){
+type coseno(type x){
 	return 1-((x*x)/2)+((x*x*x*x)/24)-((x*x*x*x*x*x)/720);
 }
-type sen(type x){
+type seno(type x){
 	return x-((x*x*x)/6)+((x*x*x*x*x)/120)-((x*x*x*x*x*x*x)/5040);
 }
 
@@ -299,10 +299,10 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	type ps = p(axis, axis, n);
 	for(int k=0; k<n; k++)
 		axis[k] = axis[k]/ps;
-	type a= cos((theta/2.0));
-	type b= -1*axis[0]*sen((theta/2.0));
-	type c= -1*axis[1]*sen((theta/2.0));
-	type d= -1*axis[2]*sen((theta/2.0));
+	type a= coseno((theta/2.0));
+	type b= -1*axis[0]*seno((theta/2.0));
+	type c= -1*axis[1]*seno((theta/2.0));
+	type d= -1*axis[2]*seno((theta/2.0));
 
 	
 	matrix[0]=a*a+b*b-c*c-d*d;
@@ -325,14 +325,16 @@ type norma(type* v, int n){
 }
 
 // moltiplicazione matriciale
-void prod_mat(type* a, MATRIX b, type* ris, int n){ 
-	for (int i = 0; i < 3; i++){
-		ris[i] = 0;
-		for (int j = 0; j < 3; j++){
-			ris[i] += a[j] * b[j * 3 + i];
-		}
-	} 
-} 
+void prod_mat(type* a, MATRIX b, type* ris, int n){
+    int index=0;
+    for(int i=0; i<n; i++){
+        ris[i]=0;
+        for(int j=0; j<n; j++){
+            ris[i]+=a[j]*b[index];
+            index++;
+        }
+    }
+}
 
 
 
@@ -502,16 +504,17 @@ type rama_energy(VECTOR phi, VECTOR psi, int n){
 	return energy;
 }
 
-type norma_euclidea(VECTOR a, VECTOR b, int n){
+type distanza_euclidea(VECTOR a, VECTOR b, int n){
 	type ris=0.0;
 	for(int i=0; i<n; i++){
+		//invertiti?
 		ris+=pow((b[i]-a[i]),2);
 	}
 	return sqrt(ris);
 }
 
 type dist(VECTOR A1, VECTOR A2){
-	return norma_euclidea(A1, A2, 3);
+	return distanza_euclidea(A1, A2, 3);
 }
 
 VECTOR get_C_alpha(MATRIX coords, int index){
@@ -629,8 +632,41 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 }
 
 type prob_accept(type delta_E, type k, type T){
-	return exp(-delta_E/(k*T));
+	printf("Delta E: %f, k: %f, T: %f \n", delta_E, k, T);
+	type ris= exp(-delta_E/(k*T));
+	printf("ris: %f \n", ris);
+	return ris;
 }
+
+void stampa_vettori(VECTOR phi, VECTOR psi, int n){
+	printf("phi: ");
+	for(int i=0; i<n; i++){
+		printf("%f, ", phi[i]);
+	}
+	printf("\n psi: ");
+	for(int i=0; i<n; i++){
+		printf("%f, ", psi[i]);
+	}
+	printf("\n");
+}
+
+void confronta_vettori(VECTOR v1, VECTOR v2, int n){
+	int c=0;
+	int indice=-1;
+	for(int i=0; i<n;i++){
+		if(v1[i]!=v2[i]){
+			c=1;
+			indice=i;
+			break;
+		}
+	}
+	if(c==0)
+		printf("Nessun cambio \n");
+	else
+		printf("Cambio in posizone: %d \n", indice);
+}
+
+
 
 void pst(params* input){
 	int n = input->N;
@@ -641,15 +677,25 @@ void pst(params* input){
 	type k = input->k;
 	VECTOR phi = input->phi;
 	VECTOR psi = input->psi;
+	type E = input->e;
 
-	type E = energy(s, phi, psi, n);
+
+	E = energy(s, phi, psi, n);
 	int t=0;
 	
-	while (T>=0.0){
+	while (T>0.0){
 		int i=rand()%(n+1);
+		printf("Numero random: %d \n", i);
 		
 		type theta_phi= (random()*2 * M_PI) - M_PI;
+		
+		//printf("Phi prima: %f \n", phi[i]);
+
 		phi[i]=phi[i]+theta_phi;
+
+		//printf("Phi dopo: %f \n", phi[i]);
+
+
 
 		type theta_psi= (random()*2 * M_PI) - M_PI;
 		psi[i]=psi[i]+theta_psi;
@@ -657,22 +703,70 @@ void pst(params* input){
 		type E_new = energy(s, phi, psi, n);
 		type delta_E = E_new - E;
 
+		//printf("Variazione energia: %f \n", delta_E);
+
 		if(delta_E <= 0){
+
+			//printf("Phi dopo variazione e: %f \n", phi[i]);
+
 			E = E_new;
 		}else{
 			type P = prob_accept(delta_E, k, T);
 			type r = random();
+
+			printf("P: %f e ", P);
+			printf("r: %f \n" , r);
+
 			if(r <= P){
+
+				//printf("Phi dopo r minore uguale P: %f \n", phi[i]);
+
 				E = E_new;
 			}else{
 				phi[i]=phi[i]-theta_phi;
 				psi[i]=psi[i]+theta_psi;
+
+				//printf("Phi dopo non accettato: %f \n", phi[i]);
 			}
 		}
 		t+=1;
 		T = to-sqrt(alpha*t);
 	}
+	input->e = E;
 	
+	
+	
+}
+
+void save_to_txt(const char* filename, MATRIX data1,MATRIX data2, int rows, int cols) {//TODO: Eliminare a fine test
+ 
+    FILE* fp = fopen(filename, "w");
+    if (fp == NULL) {
+        printf("Errore nell'apertura del file '%s' per la scrittura!\n", filename);
+        exit(1);
+    }
+ 
+    //fprintf(fp, "data1\n");
+ 
+    // Scrive la matrice nel file
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            fprintf(fp, "%.5f ", data1[i * cols + j]);  // Stampa con 5 cifre decimali
+        }
+        fprintf(fp, "\n");
+    }
+ 
+    //fprintf(fp,"data2\n");
+ 
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            fprintf(fp, "%.5f ", data2[i * cols + j]);  // Stampa con 5 cifre decimali
+        }
+        fprintf(fp, "\n");
+    }
+ 
+    fclose(fp);
+    printf("Dati salvati con successo nel file '%s'.\n", filename);
 }
 
 int main(int argc, char** argv) {
@@ -809,6 +903,9 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
+
+	
+
 	input->phi = alloc_matrix(input->N, 1);
 	input->psi = alloc_matrix(input->N, 1);
 	// Impostazione seed 
@@ -837,6 +934,7 @@ int main(int argc, char** argv) {
 	pst(input);
 	t = clock() - t;
 	time = ((float)t)/CLOCKS_PER_SEC;
+	save_to_txt("pst.txt", input->phi, input->psi, input->N, 1);//TODO: Eliminare a fine test
 
 	if(!input->silent)
 		printf("PST time = %.3f secs\n", time);

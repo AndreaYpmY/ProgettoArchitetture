@@ -29,7 +29,7 @@ phi_file="phi_256_to20_k1_alpha1_sd3.ds2"
 
 # Parametri per il confronto tra i file
 ds2_To_txt="ds2.txt"
-versione_c_out="versione-c/pst.txt"
+versione_c_out="pst.txt"
 
 # Esegue il primo script
 echo "Esecuzione del script pst..."
