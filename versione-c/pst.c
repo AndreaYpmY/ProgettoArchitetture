@@ -542,7 +542,6 @@ VECTOR get_C_alpha(MATRIX coords, int index){
 
 type hydrophobicity_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
-
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
 
@@ -550,16 +549,16 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 	c_alpha_j =alloc_matrix(3,1);
 
 
-	for(int i=0; i < n; i+=9){
-		for(int j=i+9; j<n; j+=9){
-			
-			c_alpha_i = get_C_alpha(coords, i);
-			c_alpha_j = get_C_alpha(coords, j);
+	for(int i=0; i < n; i++){
+		c_alpha_i = get_C_alpha(coords, i*9);
+
+		for(int j=i+1; j<n; j++){
+			c_alpha_j = get_C_alpha(coords, j*9);
 			type distanza=dist(c_alpha_i, c_alpha_j);
 			if(distanza < 10.0){
-				int index_i = s[i] - 'A';
-				int index_j = s[j] - 'A';
-				energy += (hydrophobicity[index_i]*hydrophobicity[index_j])/distanza;
+			int index_i = s[i] - 'A';
+			int index_j = s[j] - 'A';
+			energy += (hydrophobicity[index_i]*hydrophobicity[index_j])/distanza;
 			}
 		}
 	}
@@ -575,10 +574,10 @@ type electrostatic_energy(char* s, MATRIX coords, int n){
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
 
-	for(int i=0; i<n;i+=9){
-		for(int j=i+9; j<n; j+=9){
-			c_alpha_i = get_C_alpha(coords, i);
-			c_alpha_j = get_C_alpha(coords, j);
+	for(int i=0; i<n;i++){
+		for(int j=i+1; j<n; j++){
+			c_alpha_i = get_C_alpha(coords, i*9);
+			c_alpha_j = get_C_alpha(coords, j*9);
 			type distanza=dist(c_alpha_i, c_alpha_j);
 
 			int index_i = s[i] - 'A';
@@ -604,16 +603,16 @@ type packing_energy(char* s, MATRIX coords, int n){
 
 
 
-	for(int i=0; i<n; i+=9){
+	for(int i=0; i<n; i++){
 
 		int index_i = s[i] - 'A';
 		type density=0.0;
 
-		for(int j=0; j<n; j+=9){
+		for(int j=0; j<n; j++){
 
 			int index_j = s[j] - 'A';
-			c_alpha_i = get_C_alpha(coords, i);
-			c_alpha_j = get_C_alpha(coords, j);
+			c_alpha_i = get_C_alpha(coords, i*9);
+			c_alpha_j = get_C_alpha(coords, j*9);
 			type distanza=dist(c_alpha_i, c_alpha_j);
 
 			if(i!=j && distanza < 10.0){
@@ -633,9 +632,10 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	backbone(s, phi, psi, coords);
 	type total_energy=0.0;
 
-	for(int i=0; i<25; i++){
+	/*for(int i=0; i<25; i++){
 		printf("Coords[%i]: %f \n ", i, coords[i]);
 	}
+	*/
 
 	type rama_e =rama_energy(phi, psi, n);
 	type hydro_e = hydrophobicity_energy(s, coords, n);
@@ -653,13 +653,15 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	total_energy += hydro_e*w_hidro;
 	total_energy += ele_e*w_elec;
 	total_energy += pack_e*w_pack;
+
+	printf("Energia iniziale: %f \n", total_energy);
 	return total_energy;
 }
 
 type prob_accept(type delta_E, type k, type T){
-	printf("Delta E: %f, k: %f, T: %f \n", delta_E, k, T);
+	//printf("Delta E: %f, k: %f, T: %f \n", delta_E, k, T);
 	type ris= exp(-delta_E/(k*T));
-	printf("ris: %f \n", ris);
+	//printf("ris: %f \n", ris);
 	return ris;
 }
 
@@ -706,12 +708,12 @@ void pst(params* input){
 
 
 	E = energy(s, phi, psi, n);
-	exit (0);
+	//exit (0);
 	int t=0;
 	
 	while (T>0.0){
 		int i=rand()%(n+1);
-		printf("Numero random: %d \n", i);
+		//printf("Numero random: %d \n", i);
 		
 		type theta_phi= (random()*2 * M_PI) - M_PI;
 		
@@ -740,8 +742,8 @@ void pst(params* input){
 			type P = prob_accept(delta_E, k, T);
 			type r = random();
 
-			printf("P: %f e ", P);
-			printf("r: %f \n" , r);
+			//printf("P: %f e ", P);
+			//printf("r: %f \n" , r);
 
 			if(r <= P){
 

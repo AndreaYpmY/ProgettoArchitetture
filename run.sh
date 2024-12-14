@@ -4,7 +4,7 @@
 
 # Compila i file C
 echo "Compilazione dei file C..."
-gcc ./versione-c/pst.c -o ./versione-c/pst -lm
+gcc -O0 ./versione-c/pst.c -o ./versione-c/pst -lm
 gcc reads2data.c -o read_file_ds2 -lm
 gcc comparefiles.c -o confronto -lm
 
