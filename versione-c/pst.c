@@ -393,12 +393,18 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	type* v3;
 	MATRIX rot;
 	type* newv;
+	type* vettore_ausilio;
 	
 	v1 = alloc_matrix(3,1);
 	v2 = alloc_matrix(3,1);
 	v3 = alloc_matrix(3,1);
 	rot = alloc_matrix(3,3);
 	newv = alloc_matrix(3,1);
+	vettore_ausilio = alloc_matrix(3,1);
+
+	vettore_ausilio[0] = 0;
+	vettore_ausilio[1] = 0;
+	vettore_ausilio[2] = 0;
 
 	
 	for (int i = 0; i <n; i++){
@@ -419,10 +425,11 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			}
 
 			//rotazione
-			rotation(v1, theta_ca_c_n, rot);
+			rotation(v1, theta_c_n_ca, rot);
 
 			//moltiplicazione matriciale
-			prod_mat(v1, rot, newv, 3);
+			vettore_ausilio[1] = r_c_n;
+			prod_mat(vettore_ausilio, rot, newv, 3);
 
 			//posiziona N con le coordinate calcolate
 			coords[idx] = coords[idx-3]+newv[0];
@@ -447,7 +454,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			rotation(v2, phi[i], rot);
 
 			//moltiplicazione matriciale
-			prod_mat(v2, rot, newv, 3);
+			vettore_ausilio[1] = r_ca_n;
+			prod_mat(vettore_ausilio, rot, newv, 3);
 
 			//posiziona C alpha con le coordinate calcolate
 			coords[idx+3] = coords[idx]+newv[0];
@@ -471,8 +479,11 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		//rotazione
 		rotation(v3, psi[i], rot);
 
+
+
 		//moltiplicazione matriciale
-		prod_mat(v3, rot, newv, 3);
+		vettore_ausilio[1] = r_ca_c;
+		prod_mat(vettore_ausilio, rot, newv, 3);
 
 		//posiziona C con le coordinate calcolate
 		coords[idx+6] = coords[idx+3]+newv[0];
@@ -619,15 +630,26 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	backbone(s, phi, psi, coords);
 	type total_energy=0.0;
 
+	for(int i=0; i<25; i++){
+		printf("Coords[%i]: %f \n ", i, coords[i]);
+	}
+
+	type rama_e =rama_energy(phi, psi, n);
+	type hydro_e = hydrophobicity_energy(s, coords, n);
+	type ele_e = electrostatic_energy(s, coords, n);
+	type pack_e = packing_energy(s, coords, n);
+
+	printf("Rama: %f, Hydro: %f, Ele: %f, Pack: %f \n", rama_e, hydro_e, ele_e, pack_e);
+
 	type w_rama = 1.0;
 	type w_hidro = 0.5;
 	type w_elec = 0.2;
 	type w_pack = 0.3;
 
-	total_energy += rama_energy(phi, psi, n)*w_rama;
-	total_energy += hydrophobicity_energy(s, coords, n)*w_hidro;
-	total_energy += electrostatic_energy(s, coords, n)*w_elec;
-	total_energy += packing_energy(s, coords, n)*w_pack;
+	total_energy += rama_e*w_rama;
+	total_energy += hydro_e*w_hidro;
+	total_energy += ele_e*w_elec;
+	total_energy += pack_e*w_pack;
 	return total_energy;
 }
 
@@ -681,6 +703,7 @@ void pst(params* input){
 
 
 	E = energy(s, phi, psi, n);
+	exit (0);
 	int t=0;
 	
 	while (T>0.0){
