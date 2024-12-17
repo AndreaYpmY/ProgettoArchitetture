@@ -94,7 +94,7 @@ int main(int argc, char** argv){
         printf("%f ", data[i]);
         printf("\n");
     }*/
-	save_to_txt("ds2.txt", data, n, k);
+	save_to_txt(argv[2], data, n, k);
 
 	//dealloco la memoria
 	dealloc_matrix(data);
