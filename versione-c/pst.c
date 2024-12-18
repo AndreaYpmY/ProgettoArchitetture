@@ -642,7 +642,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	type ele_e = electrostatic_energy(s, coords, n);
 	type pack_e = packing_energy(s, coords, n);
 
-	printf("Rama: %f, Hydro: %f, Ele: %f, Pack: %f \n", rama_e, hydro_e, ele_e, pack_e);
+	//printf("Rama: %f, Hydro: %f, Ele: %f, Pack: %f \n", rama_e, hydro_e, ele_e, pack_e);
 
 	type w_rama = 1.0;
 	type w_hidro = 0.5;
@@ -654,14 +654,12 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	total_energy += ele_e*w_elec;
 	total_energy += pack_e*w_pack;
 
-	printf("Energia iniziale: %f \n", total_energy);
+	//printf("Energia: %f \n", total_energy);
 	return total_energy;
 }
 
 type prob_accept(type delta_E, type k, type T){
-	//printf("Delta E: %f, k: %f, T: %f \n", delta_E, k, T);
 	type ris= exp(-delta_E/(k*T));
-	//printf("ris: %f \n", ris);
 	return ris;
 }
 
@@ -706,64 +704,50 @@ void pst(params* input){
 	VECTOR psi = input->psi;
 	type E = input->e;
 
-
+	
 	E = energy(s, phi, psi, n);
 	//exit (0);
 	int t=0;
 	
 	while (T>0.0){
-		int i=rand()%(n+1);
-		//printf("Numero random: %d \n", i);
+		//srand(input->sd);
+		//int i=rand()%(n+1);
+		int i = (random() * n);
+		printf("Numero random: %d \n", i);
+		
 		
 		type theta_phi= (random()*2 * M_PI) - M_PI;
-		
-		//printf("Phi prima: %f \n", phi[i]);
-
 		phi[i]=phi[i]+theta_phi;
 
-		//printf("Phi dopo: %f \n", phi[i]);
-
-
-
+		
 		type theta_psi= (random()*2 * M_PI) - M_PI;
 		psi[i]=psi[i]+theta_psi;
 
 		type E_new = energy(s, phi, psi, n);
 		type delta_E = E_new - E;
 
-		//printf("Variazione energia: %f \n", delta_E);
-
 		if(delta_E <= 0){
-
-			//printf("Phi dopo variazione e: %f \n", phi[i]);
-
+			//Accetto la nuova configurazione
 			E = E_new;
 		}else{
 			type P = prob_accept(delta_E, k, T);
 			type r = random();
 
-			//printf("P: %f e ", P);
-			//printf("r: %f \n" , r);
-
 			if(r <= P){
-
-				//printf("Phi dopo r minore uguale P: %f \n", phi[i]);
-
+				//Accetto la nuova configurazione
 				E = E_new;
 			}else{
+				//Rifiuto la nuova configurazione
 				phi[i]=phi[i]-theta_phi;
-				psi[i]=psi[i]+theta_psi;
-
-				//printf("Phi dopo non accettato: %f \n", phi[i]);
+				psi[i]=psi[i]-theta_psi;
 			}
 		}
 		t+=1;
 		T = to-sqrt(alpha*t);
 	}
 	input->e = E;
-	
-	
-	
+	input->phi = phi;
+	input->psi = psi;
 }
 
 void save_to_txt(const char* filename, MATRIX data1,MATRIX data2, int rows, int cols) {//TODO: Eliminare a fine test
@@ -962,7 +946,7 @@ int main(int argc, char** argv) {
 	pst(input);
 	t = clock() - t;
 	time = ((float)t)/CLOCKS_PER_SEC;
-	save_to_txt("pst.txt", input->phi, input->psi, input->N, 1);//TODO: Eliminare a fine test
+	save_to_txt("./run/output/pst.txt", input->phi, input->psi, input->N, 1);//TODO: Eliminare a fine test
 
 	if(!input->silent)
 		printf("PST time = %.3f secs\n", time);
