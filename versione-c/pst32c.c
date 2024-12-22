@@ -47,7 +47,7 @@
 #include <libgen.h>
 #include <xmmintrin.h>
 
-#define	type		double
+#define	type		float
 #define	MATRIX		type*
 #define	VECTOR		type*
 
@@ -710,10 +710,8 @@ void pst(params* input){
 	int t=0;
 	
 	while (T>0.0){
-		//srand(input->sd);
-		//int i=rand()%(n+1);
 		int i = (random() * n);
-		printf("Numero random: %d \n", i);
+		
 		
 		
 		type theta_phi= (random()*2 * M_PI) - M_PI;
@@ -763,7 +761,7 @@ void save_to_txt(const char* filename, MATRIX data1,MATRIX data2, int rows, int 
     // Scrive la matrice nel file
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            fprintf(fp, "%.5f ", data1[i * cols + j]);  // Stampa con 5 cifre decimali
+            fprintf(fp, "%.6f ", data1[i * cols + j]);  // Stampa con 5 cifre decimali
         }
         fprintf(fp, "\n");
     }
@@ -772,7 +770,7 @@ void save_to_txt(const char* filename, MATRIX data1,MATRIX data2, int rows, int 
  
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            fprintf(fp, "%.5f ", data2[i * cols + j]);  // Stampa con 5 cifre decimali
+            fprintf(fp, "%.6f ", data2[i * cols + j]);  // Stampa con 5 cifre decimali
         }
         fprintf(fp, "\n");
     }
@@ -946,7 +944,7 @@ int main(int argc, char** argv) {
 	pst(input);
 	t = clock() - t;
 	time = ((float)t)/CLOCKS_PER_SEC;
-	save_to_txt("./run/output/pst.txt", input->phi, input->psi, input->N, 1);//TODO: Eliminare a fine test
+	save_to_txt("../run/output32/pst32.txt", input->phi, input->psi, input->N, 1);//TODO: Eliminare a fine test
 
 	if(!input->silent)
 		printf("PST time = %.3f secs\n", time);

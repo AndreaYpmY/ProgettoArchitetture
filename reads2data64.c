@@ -6,7 +6,7 @@
 #include <libgen.h>
 #include <xmmintrin.h>
 
-#define	type		float
+#define	type		double
 #define	MATRIX		type*
 #define	VECTOR		type*
 
@@ -73,7 +73,7 @@ void save_to_txt(const char* filename, MATRIX data, int rows, int cols) {
     // Scrive la matrice nel file
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            fprintf(fp, "%.5f ", data[i * cols + j]);  // Stampa con 5 cifre decimali
+            fprintf(fp, "%.6f ", data[i * cols + j]);  // Stampa con 5 cifre decimali
         }
         fprintf(fp, "\n");  // Nuova riga dopo ogni riga della matrice
     }

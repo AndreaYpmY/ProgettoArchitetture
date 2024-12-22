@@ -4,7 +4,7 @@
 
 void compare_files_and_save_to_file(const char* file1, const char* phi, const char* psi, const char* output) {
     FILE *fp1, *fp2, *fp3, *fpout;
-    double num1, num2;
+    float num1, num2;
     char line[512];
     int righe_phi = 0; // Contatore per le righe phi
     int righe_psi = 0; // Contatore per le righe psi
@@ -46,28 +46,28 @@ void compare_files_and_save_to_file(const char* file1, const char* phi, const ch
     fprintf(fpout, "Confronto delle righe:\n");
 
     while (fgets(line, sizeof(line), fp1) != NULL) {
-        sscanf(line, "%lf", &num1); // Leggi il numero dal primo file
+        sscanf(line, "%f", &num1); // Leggi il numero dal primo file
 
 
         if (fgets(line, sizeof(line), fp2) != NULL) {
 
-            sscanf(line, "%lf", &num2); // Leggi il numero dal secondo file
+            sscanf(line, "%f", &num2); // Leggi il numero dal secondo file
             righe_phi += 1;
 
             if (num1 == num2) {
-                fprintf(fpout, "[PHI]Uguale: %.5f\n", num1);
+                fprintf(fpout, "[PHI]Uguale: %.6f\n", num1);
             } else {
-                fprintf(fpout, "[PHI]Divergente: %.5f != %.5f\n", num1, num2);
+                fprintf(fpout, "[PHI]Divergente: %.6f != %.6f\n", num1, num2);
                 diff_phi += 1;
             }
         }else if(fgets(line, sizeof(line), fp3) != NULL){
-            sscanf(line, "%lf", &num2); // Leggi il numero dal secondo file
+            sscanf(line, "%f", &num2); // Leggi il numero dal secondo file
             righe_psi += 1;
 
             if (num1 == num2) {
-                fprintf(fpout, "[PSI]Uguale: %.5f\n", num1);
+                fprintf(fpout, "[PSI]Uguale: %.6f\n", num1);
             } else {
-                fprintf(fpout, "[PSI]Divergente: %.5f != %.5f\n", num1, num2);
+                fprintf(fpout, "[PSI]Divergente: %.6f != %.6f\n", num1, num2);
                 diff_psi += 1;
             }
         }
@@ -89,7 +89,7 @@ void compare_files_and_save_to_file(const char* file1, const char* phi, const ch
 // Funzione per confrontare due file
 void compare_files(const char* file1, const char* file2) {
     FILE *fp1, *fp2;
-    double num1, num2;
+    float num1, num2;
     char line[256];
     int righe = 0; // Contatore per le righe
     int diff = 0; // Contatore per le righe differenti
@@ -111,10 +111,10 @@ void compare_files(const char* file1, const char* file2) {
     int k1 = 0;
     int k2 = 0;
 
-    double* ds_two = (double*) malloc(256 * sizeof(double));
+    float* ds_two = (float*) malloc(256 * sizeof(float));
     
     while(fgets(line, sizeof(line), fp1) != NULL) {
-        sscanf(line, "%lf", &num1);
+        sscanf(line, "%f", &num1);
         ds_two[k1] = num1;    
         k1++;
     }
@@ -125,7 +125,7 @@ void compare_files(const char* file1, const char* file2) {
     while (k2<512) {
         fgets(line, sizeof(line), fp2);
         k2++;
-        sscanf(line, "%lf", &num2); // Leggi il numero dal primo file
+        sscanf(line, "%f", &num2); // Leggi il numero dal primo file
 
         if (k1<256) {
             if(k1==255)
@@ -136,9 +136,9 @@ void compare_files(const char* file1, const char* file2) {
             righe += 1;
 
             if (ds_two[k1]== num2) {
-                printf("Uguale: %.5f\n", num2);
+                printf("Uguale: %.6f\n", num2);
             } else {
-                printf("Divergente: %.5f != %.5f\n", num2, ds_two[k1]);
+                printf("Divergente: %.6f != %.6f\n", num2, ds_two[k1]);
                 diff += 1;
             }
         }
