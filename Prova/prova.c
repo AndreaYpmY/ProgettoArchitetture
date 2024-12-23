@@ -115,18 +115,18 @@ int main(){
 
     type n = norma(a);
 
-    MATRIX prod_c= alloc_matrix(4,4);
-    prod_mat(a,b,prod_c,4);
+    //MATRIX prod_c= alloc_matrix(4,4);
+    //prod_mat(a,b,prod_c,4);
 
-    MATRIX prod_asm= alloc_matrix(4,4);
-    prod_asm=prodmat(a,b,4);
+    //MATRIX prod_asm= alloc_matrix(4,4);
+    //prod_asm=prodmat(a,b,4);
     
     printf("Prodotto scalare: %f (funzione C: %f)\n",ris,p(a,b,4));
     printf("Distanza euclidea: %f (funzione C: %f)\n",distanza,distanza_euclidea(a,b,4));
     printf("Norma: %f (funzione C: %f)\n",n,norma_c(a,4));
-    printf("Prodotto matriciale: \n");
-    print_matrix(prod_c,4,4);
-    printf("Prodotto matriciale (funzione C): \n");
-    print_matrix(prod_asm,4,4);
+    //printf("Prodotto matriciale: \n");
+    //print_matrix(prod_c,4,4);
+    //printf("Prodotto matriciale (funzione C): \n");
+    //print_matrix(prod_asm,4,4);
 
 }
