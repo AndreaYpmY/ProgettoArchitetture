@@ -9,24 +9,24 @@ section .bss
 section .text
 
 
-global prodotto
+global norma
 
 a equ 8
 b equ 12
 
-prodotto:
+norma:
     start
 
     mov eax, [ebp + a]
-    mov ecx, [ebp + b]
-        
+
     movaps  xmm0, [eax]
-    movaps  xmm1, [ecx]
-    mulps   xmm0, xmm1
+    mulps   xmm0, xmm0
     haddps  xmm0, xmm0
     haddps  xmm0, xmm0
+    sqrtss  xmm0, xmm0
+
     movss   [z], xmm0
     fld dword [z]
-    ;printss z
+
 
     stop
