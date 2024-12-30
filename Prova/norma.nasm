@@ -12,7 +12,6 @@ section .text
 global norma
 
 a equ 8
-b equ 12
 
 norma:
     start

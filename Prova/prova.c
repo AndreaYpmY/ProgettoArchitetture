@@ -55,11 +55,10 @@ type norma_c(type* v, int n){
 	}
 	return sqrt(ris);
 }
-type norma(VECTOR v);
+extern type norma(VECTOR v);
 
 /* Prodotto matriciale */
-// moltiplicazione matriciale
-void prod_mat(type* a, MATRIX b, type* ris, int n){
+void prod_mat(VECTOR a, MATRIX b, VECTOR ris, int n){
     int index=0;
 	int k=0;
     for(int i=0; i<n; i++){
@@ -72,12 +71,14 @@ void prod_mat(type* a, MATRIX b, type* ris, int n){
 		k++;
     }
 }
-extern type prodmat(VECTOR a, MATRIX b, int n);
+extern type* prodmat(VECTOR a, MATRIX b);
 
 
 
 
-void print_matrix(MATRIX m, int rows, int cols) {
+
+
+void print_matrix(type* m, int rows, int cols) {
     for(int i=0; i<rows; i++) {
         for(int j=0; j<cols; j++) {
             printf("%f ", m[i*cols+j]);
@@ -115,18 +116,35 @@ int main(){
 
     type n = norma(a);
 
-    //MATRIX prod_c= alloc_matrix(4,4);
-    //prod_mat(a,b,prod_c,4);
-
-    //MATRIX prod_asm= alloc_matrix(4,4);
-    //prod_asm=prodmat(a,b,4);
+    // per prodotto matriciale
+    VECTOR prod_a=alloc_matrix(3,1);
+    MATRIX prod_b=alloc_matrix(3,3);
+    prod_a[0]=7.0;
+    prod_a[1]=5.2;
+    prod_a[2]=3.1;
+    prod_b[0]=1.0;
+    prod_b[1]=2.2;
+    prod_b[2]=8.0;
+    prod_b[3]=23.1;
+    prod_b[4]=5.0;
+    prod_b[5]=3.0;
+    prod_b[6]=10.0;
+    prod_b[7]=2.0;
+    prod_b[8]=2.9;
     
+    VECTOR results_c=alloc_matrix(3,1);
+    prod_mat(prod_a,prod_b,results_c,3);
+    VECTOR results_asm;
+    results_asm=prodmat(prod_a,prod_b);
+    
+
     printf("Prodotto scalare: %f (funzione C: %f)\n",ris,p(a,b,4));
     printf("Distanza euclidea: %f (funzione C: %f)\n",distanza,distanza_euclidea(a,b,4));
     printf("Norma: %f (funzione C: %f)\n",n,norma_c(a,4));
-    //printf("Prodotto matriciale: \n");
-    //print_matrix(prod_c,4,4);
-    //printf("Prodotto matriciale (funzione C): \n");
-    //print_matrix(prod_asm,4,4);
+    
+    printf("Prodotto matriciale (funzione C): \n");
+    print_matrix(results_c,3,1);
+    printf("Prodotto matriciale (funzione ASM): \n");
+    print_matrix(results_asm,3,1);
 
 }
