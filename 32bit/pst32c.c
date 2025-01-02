@@ -276,7 +276,12 @@ void gen_rnd_mat(VECTOR v, int N){
 }
 
 // PROCEDURE ASSEMBLY
-extern void prova(params* input);
+//extern void prova(params* input);
+extern type dist(VECTOR a, VECTOR b);
+extern type norma(VECTOR v);
+
+
+
 
 //prodotto scalare
 type p(type *a, type *b, int n){
@@ -296,7 +301,7 @@ type seno(type x){
 
 void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	const int n=3;
-	type ps = p(axis, axis, n);
+	type ps = p(axis,axis,3);
 	for(int k=0; k<n; k++)
 		axis[k] = axis[k]/ps;
 	type a= coseno((theta/2.0));
@@ -316,13 +321,7 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	matrix[8]=a*a+d*d-b*b-c*c;
 }
 
-type norma(type* v, int n){
-	type ris=0.0;
-	for(int i=0; i<n; i++){
-		ris+=v[i]*v[i];
-	}
-	return sqrt(ris);
-}
+
 
 // moltiplicazione matriciale
 void prod_mat(type* a, MATRIX b, type* ris, int n){
@@ -338,7 +337,6 @@ void prod_mat(type* a, MATRIX b, type* ris, int n){
 		k++;
     }
 }
-
 
 
 
@@ -397,6 +395,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	MATRIX rot;
 	type* newv;
 	type* vettore_ausilio;
+	int w=0;
 	
 	v1 = alloc_matrix(3,1);
 	v2 = alloc_matrix(3,1);
@@ -422,7 +421,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v1[2] = coords[idx-1]-coords[idx-4];
 			
 			// calcola norma
-			type norma_v1 = norma(v1, 3);
+			type norma_v1 = norma(v1);
 			for(int j=0; j<3; j++){
 				v1[j] = v1[j]/norma_v1;
 			}
@@ -433,6 +432,14 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_c_n;
 			prod_mat(vettore_ausilio, rot, newv, 3);
+			//newv = prodmat(vettore_ausilio, rot);
+			
+			
+			/*printf("Newv: %f; %f; %f \n", newv[0], newv[1], newv[2]);
+			w++;
+			if(w>10)
+				exit(0);
+			*/
 
 			//posiziona N con le coordinate calcolate
 			coords[idx] = coords[idx-3]+newv[0];
@@ -448,7 +455,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v2[2] = coords[idx+2]-coords[idx-1];
 
 			// calcola norma
-			type norma_v2 = norma(v2, 3);
+			type norma_v2 = norma(v2);
 			for(int j=0; j<3; j++){
 				v2[j] = v2[j]/norma_v2;
 			}
@@ -459,6 +466,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_ca_n;
 			prod_mat(vettore_ausilio, rot, newv, 3);
+			//newv = prodmat(vettore_ausilio, rot);
 
 			//posiziona C alpha con le coordinate calcolate
 			coords[idx+3] = coords[idx]+newv[0];
@@ -474,7 +482,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		v3[2] = coords[idx+5]-coords[idx+2];	
 
 		// calcola norma
-		type norma_v3 = norma(v3, 3);
+		type norma_v3 = norma(v3);
 		for(int j=0; j<3; j++){
 			v3[j] = v3[j]/norma_v3;
 		}
@@ -487,6 +495,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		//moltiplicazione matriciale
 		vettore_ausilio[1] = r_ca_c;
 		prod_mat(vettore_ausilio, rot, newv, 3);
+		//newv = prodmat(vettore_ausilio, rot);
+
 
 		//posiziona C con le coordinate calcolate
 		coords[idx+6] = coords[idx+3]+newv[0];
@@ -518,18 +528,8 @@ type rama_energy(VECTOR phi, VECTOR psi, int n){
 	return energy;
 }
 
-type distanza_euclidea(VECTOR a, VECTOR b, int n){
-	type ris=0.0;
-	for(int i=0; i<n; i++){
-		//invertiti?
-		ris+=pow((b[i]-a[i]),2);
-	}
-	return sqrt(ris);
-}
 
-type dist(VECTOR A1, VECTOR A2){
-	return distanza_euclidea(A1, A2, 3);
-}
+
 
 VECTOR get_C_alpha(MATRIX coords, int index){
 	VECTOR c_alpha;
