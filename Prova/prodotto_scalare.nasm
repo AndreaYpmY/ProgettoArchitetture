@@ -1,6 +1,8 @@
 %include "sseutils32.nasm"
 
 section .data
+    alignb 16
+    zero_mask dd 1.0, 1.0, 1.0, 0.0
 
 section .bss
     alignb 16
@@ -19,9 +21,15 @@ prodotto:
 
     mov eax, [ebp + a]
     mov ecx, [ebp + b]
+
+    movaps xmm6, [zero_mask]
         
     movaps  xmm0, [eax]
     movaps  xmm1, [ecx]
+    
+    mulps  xmm1, xmm6
+    mulps  xmm0, xmm6
+
     mulps   xmm0, xmm1
     haddps  xmm0, xmm0
     haddps  xmm0, xmm0

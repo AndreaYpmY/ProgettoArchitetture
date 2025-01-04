@@ -85,12 +85,153 @@ for:
     haddps  xmm0,   xmm0
     haddps  xmm0,   xmm0
 
-    ;movd    esi,    xmm0
-    ;add     edx,    esi
+    addps   xmm7,   xmm0
+
+    ; -------------------------
+
+    movaps  xmm0,   [eax + ecx * 4+4]
+    movaps  xmm1,   [ebx + ecx * 4+4]
+
+    movaps  xmm2,   xmm0
+    movaps  xmm3,   xmm1
+
+    ;calcolo alpha_dist
+    movaps  xmm4,   [a_phi]
+    subps   xmm0,   xmm4
+    movaps  xmm5,   [a_psi]
+    subps   xmm1,   xmm5
+    mulps   xmm0,   xmm0
+    mulps   xmm1,   xmm1
+    addps   xmm0,   xmm1
+    sqrtps  xmm0,   xmm0        ;in xmm0 ho alpha_dist
+
+    ;calcolo beta_dist
+    movaps  xmm4,   [b_phi]
+    subps   xmm2,   xmm4
+    movaps  xmm5,   [b_psi]
+    subps   xmm3,   xmm5
+    mulps   xmm2,   xmm2
+    mulps   xmm3,   xmm3
+    addps   xmm2,   xmm3
+    sqrtps  xmm2,   xmm2        ;in xmm2 ho beta_dist
+
+    movaps  xmm4,   xmm0
+    cmpltps xmm4,   xmm2        ;in xmm4 ho alpha_dist, in xmm2 ho beta_dist. Confronto se alpha_dist < beta_dist
+                                ;la maschera è in xmm4
+
+    andps   xmm0,   xmm4
+
+    movaps  xmm4,   xmm0
+    cmpnltps xmm4,  xmm2
+    andps   xmm2,   xmm4
+
+    addps   xmm0,   xmm2
+
+    movaps  xmm5,   [const]
+    mulps   xmm0,   xmm5
+
+    haddps  xmm0,   xmm0
+    haddps  xmm0,   xmm0
 
     addps   xmm7,   xmm0
 
-    add ecx,    4
+    ; ----------------------------
+
+    movaps  xmm0,   [eax + ecx * 4+8]
+    movaps  xmm1,   [ebx + ecx * 4+8]
+
+    movaps  xmm2,   xmm0
+    movaps  xmm3,   xmm1
+
+    ;calcolo alpha_dist
+    movaps  xmm4,   [a_phi]
+    subps   xmm0,   xmm4
+    movaps  xmm5,   [a_psi]
+    subps   xmm1,   xmm5
+    mulps   xmm0,   xmm0
+    mulps   xmm1,   xmm1
+    addps   xmm0,   xmm1
+    sqrtps  xmm0,   xmm0        ;in xmm0 ho alpha_dist
+
+    ;calcolo beta_dist
+    movaps  xmm4,   [b_phi]
+    subps   xmm2,   xmm4
+    movaps  xmm5,   [b_psi]
+    subps   xmm3,   xmm5
+    mulps   xmm2,   xmm2
+    mulps   xmm3,   xmm3
+    addps   xmm2,   xmm3
+    sqrtps  xmm2,   xmm2        ;in xmm2 ho beta_dist
+
+    movaps  xmm4,   xmm0
+    cmpltps xmm4,   xmm2        ;in xmm4 ho alpha_dist, in xmm2 ho beta_dist. Confronto se alpha_dist < beta_dist
+                                ;la maschera è in xmm4
+
+    andps   xmm0,   xmm4
+
+    movaps  xmm4,   xmm0
+    cmpnltps xmm4,  xmm2
+    andps   xmm2,   xmm4
+
+    addps   xmm0,   xmm2
+
+    movaps  xmm5,   [const]
+    mulps   xmm0,   xmm5
+
+    haddps  xmm0,   xmm0
+    haddps  xmm0,   xmm0
+
+    addps   xmm7,   xmm0
+
+    ; ----------------------------
+
+    movaps  xmm0,   [eax + ecx * 4+12]
+    movaps  xmm1,   [ebx + ecx * 4+12]
+
+    movaps  xmm2,   xmm0
+    movaps  xmm3,   xmm1
+
+    ;calcolo alpha_dist
+    movaps  xmm4,   [a_phi]
+    subps   xmm0,   xmm4
+    movaps  xmm5,   [a_psi]
+    subps   xmm1,   xmm5
+    mulps   xmm0,   xmm0
+    mulps   xmm1,   xmm1
+    addps   xmm0,   xmm1
+    sqrtps  xmm0,   xmm0        ;in xmm0 ho alpha_dist
+
+    ;calcolo beta_dist
+    movaps  xmm4,   [b_phi]
+    subps   xmm2,   xmm4
+    movaps  xmm5,   [b_psi]
+    subps   xmm3,   xmm5
+    mulps   xmm2,   xmm2
+    mulps   xmm3,   xmm3
+    addps   xmm2,   xmm3
+    sqrtps  xmm2,   xmm2        ;in xmm2 ho beta_dist
+
+    movaps  xmm4,   xmm0
+    cmpltps xmm4,   xmm2        ;in xmm4 ho alpha_dist, in xmm2 ho beta_dist. Confronto se alpha_dist < beta_dist
+                                ;la maschera è in xmm4
+
+    andps   xmm0,   xmm4
+
+    movaps  xmm4,   xmm0
+    cmpnltps xmm4,  xmm2
+    andps   xmm2,   xmm4
+
+    addps   xmm0,   xmm2
+
+    movaps  xmm5,   [const]
+    mulps   xmm0,   xmm5
+
+    haddps  xmm0,   xmm0
+    haddps  xmm0,   xmm0
+
+    addps   xmm7,   xmm0
+
+    add ecx,    16
     cmp ecx,    edi
     jb   for
 

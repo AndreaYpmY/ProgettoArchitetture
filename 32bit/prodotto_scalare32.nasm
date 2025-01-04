@@ -4,29 +4,30 @@ section .data
 
 section .bss
     alignb 16
-    z   resd 3
+    z   resd 1
 
 section .text
 
 
-global norma
+global prodscal
 
 a equ 8
+b equ 12
 
-norma:
+prodscal:
     start
 
     mov eax, [ebp + a]
-
+    mov ecx, [ebp + b]
+        
     movaps  xmm0, [eax]
-    movaps  xmm1, xmm0
-    mulps   xmm0, xmm0
-    haddps  xmm0, xmm0
-    haddps  xmm0, xmm0
-    sqrtss  xmm0, xmm0
+    movaps  xmm1, [ecx]
 
-    divps  xmm1, xmm0
-    movaps  [z], xmm1
-    lea eax , [z]
+    mulps   xmm0, xmm1
+    haddps  xmm0, xmm0
+    haddps  xmm0, xmm0
+    movss   [z], xmm0
+    fld dword [z]
+    ;printss z
 
     stop

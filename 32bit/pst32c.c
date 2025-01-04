@@ -278,8 +278,10 @@ void gen_rnd_mat(VECTOR v, int N){
 // PROCEDURE ASSEMBLY
 //extern void prova(params* input);
 extern type dist(VECTOR a, VECTOR b);
-extern type norma(VECTOR v);
-
+extern VECTOR norma(VECTOR v);
+extern type rama(VECTOR phi, VECTOR psi, int n);
+extern VECTOR prodmat(type* a, MATRIX b);
+extern type prodscal(type *a, type *b);
 
 
 
@@ -301,7 +303,8 @@ type seno(type x){
 
 void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	const int n=3;
-	type ps = p(axis,axis,3);
+	//type ps = p(axis,axis,3);
+	type ps= prodscal(axis,axis);
 	for(int k=0; k<n; k++)
 		axis[k] = axis[k]/ps;
 	type a= coseno((theta/2.0));
@@ -347,7 +350,6 @@ void prod_mat(type* a, MATRIX b, type* ris, int n){
 		k++;
     }
 }
-extern VECTOR prodmat(type* a, MATRIX b);
 
 
 
@@ -432,10 +434,11 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v1[2] = coords[idx-1]-coords[idx-4];
 			
 			// calcola norma
-			type norma_v1 = norma(v1);
-			for(int j=0; j<3; j++){
-				v1[j] = v1[j]/norma_v1;
-			}
+			//type norma_v1 = norma(v1);
+			//for(int j=0; j<3; j++){
+			//	v1[j] = v1[j]/norma_v1;
+			//}
+			v1=norma(v1);
 
 			//rotazione
 			rotation(v1, theta_c_n_ca, rot);
@@ -466,10 +469,11 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v2[2] = coords[idx+2]-coords[idx-1];
 
 			// calcola norma
-			type norma_v2 = norma(v2);
+			/*type norma_v2 = norma(v2);
 			for(int j=0; j<3; j++){
 				v2[j] = v2[j]/norma_v2;
-			}
+			}*/
+			v2=norma(v2);
 
 			//rotazione
 			rotation(v2, phi[i], rot);
@@ -492,11 +496,12 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		v3[1] = coords[idx+4]-coords[idx+1];
 		v3[2] = coords[idx+5]-coords[idx+2];	
 
-		// calcola norma
+		/* calcola norma
 		type norma_v3 = norma(v3);
 		for(int j=0; j<3; j++){
 			v3[j] = v3[j]/norma_v3;
-		}
+		}*/
+		v3=norma(v3);
 
 		//rotazione
 		rotation(v3, psi[i], rot);
@@ -514,6 +519,13 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		coords[idx+7] = coords[idx+4]+newv[1];
 		coords[idx+8] = coords[idx+5]+newv[2];
 	}
+
+	dealloc_matrix(v1);
+	dealloc_matrix(v2);
+	dealloc_matrix(v3);
+	dealloc_matrix(rot);
+	dealloc_matrix(newv);
+	dealloc_matrix(vettore_ausilio);
 }
 
 type min(type a, type b){
@@ -544,7 +556,6 @@ type rama_energy(VECTOR phi, VECTOR psi, int n){
 
 VECTOR get_C_alpha(MATRIX coords, int index){
 	VECTOR c_alpha;
-	c_alpha = alloc_matrix(3,1); // x,y,z
 	c_alpha[0] = coords[index+3];
 	c_alpha[1] = coords[index+4];
 	c_alpha[2] = coords[index+5];
@@ -559,7 +570,6 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
 
-
 	for(int i=0; i < n; i++){
 		c_alpha_i = get_C_alpha(coords, i*9);
 
@@ -573,6 +583,8 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 			}
 		}
 	}
+	dealloc_matrix(c_alpha_i);
+	dealloc_matrix(c_alpha_j);
 	return energy;
 }
 
@@ -599,6 +611,9 @@ type electrostatic_energy(char* s, MATRIX coords, int n){
 			}
 		}
 	}
+
+	dealloc_matrix(c_alpha_i);
+	dealloc_matrix(c_alpha_j);
 
 	return energy;
 }
@@ -633,6 +648,9 @@ type packing_energy(char* s, MATRIX coords, int n){
 		energy += pow((volume[index_i]-density),2);
 	}
 
+	dealloc_matrix(c_alpha_i);
+	dealloc_matrix(c_alpha_j);
+
 	return energy;
 }
 
@@ -648,7 +666,8 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	}
 	*/
 
-	type rama_e =rama_energy(phi, psi, n);
+	//type rama_e =rama_energy(phi, psi, n);
+	type rama_e = rama(phi, psi, n);
 	type hydro_e = hydrophobicity_energy(s, coords, n);
 	type ele_e = electrostatic_energy(s, coords, n);
 	type pack_e = packing_energy(s, coords, n);
@@ -666,6 +685,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	total_energy += pack_e*w_pack;
 
 	//printf("Energia: %f \n", total_energy);
+	dealloc_matrix(coords);
 	return total_energy;
 }
 
