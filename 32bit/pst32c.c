@@ -309,7 +309,7 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	type c= -1*axis[1]*seno((theta/2.0));
 	type d= -1*axis[2]*seno((theta/2.0));
 
-	
+	/* Versione 
 	matrix[0]=a*a+b*b-c*c-d*d;
 	matrix[1]=2*(b*c+a*d);
 	matrix[2]=2*(b*d-a*c);
@@ -318,6 +318,16 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	matrix[5]=2*(c*d+a*b);
 	matrix[6]=2*(b*d+a*c);
 	matrix[7]=2*(c*d-a*b);
+	matrix[8]=a*a+d*d-b*b-c*c;
+	*/
+	matrix[0]=a*a+b*b-c*c-d*d;
+	matrix[3]=2*(b*c+a*d);
+	matrix[6]=2*(b*d-a*c);
+	matrix[1]=2*(b*c-a*d);
+	matrix[4]=a*a+c*c-b*b-d*d;
+	matrix[7]=2*(c*d+a*b);
+	matrix[2]=2*(b*d+a*c);
+	matrix[5]=2*(c*d-a*b);
 	matrix[8]=a*a+d*d-b*b-c*c;
 }
 
@@ -337,6 +347,7 @@ void prod_mat(type* a, MATRIX b, type* ris, int n){
 		k++;
     }
 }
+extern VECTOR prodmat(type* a, MATRIX b);
 
 
 
@@ -431,8 +442,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_c_n;
-			prod_mat(vettore_ausilio, rot, newv, 3);
-			//newv = prodmat(vettore_ausilio, rot);
+			//prod_mat(vettore_ausilio, rot, newv, 3);
+			newv = prodmat(vettore_ausilio, rot);
 			
 			
 			/*printf("Newv: %f; %f; %f \n", newv[0], newv[1], newv[2]);
@@ -465,8 +476,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_ca_n;
-			prod_mat(vettore_ausilio, rot, newv, 3);
-			//newv = prodmat(vettore_ausilio, rot);
+			//prod_mat(vettore_ausilio, rot, newv, 3);
+			newv = prodmat(vettore_ausilio, rot);
 
 			//posiziona C alpha con le coordinate calcolate
 			coords[idx+3] = coords[idx]+newv[0];
@@ -494,8 +505,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 
 		//moltiplicazione matriciale
 		vettore_ausilio[1] = r_ca_c;
-		prod_mat(vettore_ausilio, rot, newv, 3);
-		//newv = prodmat(vettore_ausilio, rot);
+		//prod_mat(vettore_ausilio, rot, newv, 3);
+		newv = prodmat(vettore_ausilio, rot);
 
 
 		//posiziona C con le coordinate calcolate

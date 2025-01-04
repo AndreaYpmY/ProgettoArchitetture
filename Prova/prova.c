@@ -71,8 +71,17 @@ void prod_mat(VECTOR a, MATRIX b, VECTOR ris, int n){
 		k++;
     }
 }
+//necessario: column-major order
+void prod_mat_v2(VECTOR a, MATRIX b, VECTOR ris, int n){
+    for (int i=0; i<n; i++){
+        ris[i]=0;
+        for (int j=0; j<n; j++){
+            ris[i]+=a[j]*b[i*n+j];
+        }
+    }
+}
 extern type* prodmat(VECTOR a, MATRIX b);
-
+extern type* prodmat_v2(VECTOR a, MATRIX b);
 
 
 
@@ -88,7 +97,8 @@ void print_matrix(type* m, int rows, int cols) {
 }
 
 int main(){
-
+    clock_t t;
+    type time;
     MATRIX a = alloc_matrix(4,1);
     MATRIX b = alloc_matrix(4,1);
     /*a[0]=0.323;
@@ -109,6 +119,8 @@ int main(){
     b[1] = 2.423;  
     b[2] = -1.123; 
     b[3] = -0.223; 
+
+
     
     type ris = prodotto(a,b);
 
@@ -119,24 +131,60 @@ int main(){
     // per prodotto matriciale
     VECTOR prod_a=alloc_matrix(3,1);
     MATRIX prod_b=alloc_matrix(3,3);
-    prod_a[0]=7.0;
-    prod_a[1]=5.2;
+    prod_a[0]=7.094;
+    prod_a[1]=-5.2;
     prod_a[2]=3.1;
-    prod_b[0]=1.0;
-    prod_b[1]=2.2;
-    prod_b[2]=8.0;
-    prod_b[3]=23.1;
-    prod_b[4]=5.0;
-    prod_b[5]=3.0;
-    prod_b[6]=10.0;
-    prod_b[7]=2.0;
-    prod_b[8]=2.9;
-    
+    prod_b[0]=1.0234;
+    prod_b[1]=3.28999;
+    prod_b[2]=8.44333;
+    prod_b[3]=13.1;
+    prod_b[4]=5.043;
+    prod_b[5]=2.4555;
+    prod_b[6]=10.032;
+    prod_b[7]=2.3334;
+    prod_b[8]=2.9323;
+
+    // column-major order di prod_b
+
+    MATRIX prod_c=alloc_matrix(3,3);
+    prod_c[0]=1.0234;
+    prod_c[1]=13.1;
+    prod_c[2]=10.032;
+    prod_c[3]=3.28999;
+    prod_c[4]=5.043;
+    prod_c[5]=2.3334;
+    prod_c[6]=8.44333;
+    prod_c[7]=2.4555;
+    prod_c[8]=2.9323;
+
     VECTOR results_c=alloc_matrix(3,1);
-    prod_mat(prod_a,prod_b,results_c,3);
+    VECTOR results_v2=alloc_matrix(3,1);
     VECTOR results_asm;
-    results_asm=prodmat(prod_a,prod_b);
+    VECTOR results_asm_v2;
+
+    t = clock();
+    prod_mat(prod_a,prod_b,results_c,3);
+    t = clock() - t;
+    time = ((float)t)/CLOCKS_PER_SEC;
+    printf("[time] Prodotto matriciale (C) = %.5f secs\n", time);
+
+    t = clock();
+    prod_mat_v2(prod_a,prod_c,results_v2,3);
+    t = clock() - t;
+    time = ((float)t)/CLOCKS_PER_SEC;
+    printf("[time] Prodotto matriciale v2 (C) = %.5f secs\n", time);
     
+    t = clock();
+    results_asm=prodmat(prod_a,prod_b);
+    t = clock() - t;
+    time = ((float)t)/CLOCKS_PER_SEC;
+    printf("[time] Prodotto matriciale (nasm) = %.5f secs\n", time);
+
+    t = clock();
+    results_asm_v2=prodmat_v2(prod_a,prod_c);
+    t = clock() - t;
+    time = ((float)t)/CLOCKS_PER_SEC;
+    printf("[time] Prodotto matriciale v2 (nasm) = %.5f secs\n", time);
 
     printf("Prodotto scalare: %f (funzione C: %f)\n",ris,p(a,b,4));
     printf("Distanza euclidea: %f (funzione C: %f)\n",distanza,distanza_euclidea(a,b,4));
@@ -146,5 +194,9 @@ int main(){
     print_matrix(results_c,3,1);
     printf("Prodotto matriciale (funzione ASM): \n");
     print_matrix(results_asm,3,1);
+    printf("Prodotto matriciale (funzione C v2): \n");
+    print_matrix(results_v2,3,1);
+    printf("Prodotto matriciale (funzione ASM v2): \n");
+    print_matrix(results_asm_v2,3,1);
 
 }

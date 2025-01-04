@@ -10,6 +10,7 @@ FILES_NASM=(
     "distanza_euclidea"
     "norma"
     "prodotto_matriciale"
+    "prodotto_matriciale_v2"
 )  # Aggiungi altri file .nasm qui
 
 # Compilazione dei file NASM in formato elf32
