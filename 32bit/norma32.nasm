@@ -14,7 +14,9 @@ global norma
 a equ 8
 
 norma:
-    start
+    push ebp
+    mov ebp, esp
+    push ebx
 
     mov eax, [ebp + a]
 
@@ -25,8 +27,12 @@ norma:
     haddps  xmm0, xmm0
     sqrtss  xmm0, xmm0
 
+    shufps  xmm0, xmm0, 0
+
     divps  xmm1, xmm0
     movaps  [z], xmm1
     lea eax , [z]
 
-    stop
+    pop ebx
+    mov esp, ebp
+    pop ebp

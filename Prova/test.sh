@@ -11,6 +11,7 @@ FILES_NASM=(
     "norma"
     "prodotto_matriciale"
     "prodotto_matriciale_v2"
+    "sseutils32"
 )  # Aggiungi altri file .nasm qui
 
 # Compilazione dei file NASM in formato elf32

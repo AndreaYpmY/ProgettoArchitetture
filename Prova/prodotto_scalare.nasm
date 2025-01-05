@@ -17,18 +17,18 @@ a equ 8
 b equ 12
 
 prodotto:
-    start
+    push ebp
+    mov ebp, esp
+    push ebx
 
     mov eax, [ebp + a]
     mov ecx, [ebp + b]
-
-    movaps xmm6, [zero_mask]
         
     movaps  xmm0, [eax]
     movaps  xmm1, [ecx]
     
-    mulps  xmm1, xmm6
-    mulps  xmm0, xmm6
+    ;mulps  xmm1, xmm6
+    ;mulps  xmm0, xmm6
 
     mulps   xmm0, xmm1
     haddps  xmm0, xmm0
@@ -37,4 +37,6 @@ prodotto:
     fld dword [z]
     ;printss z
 
-    stop
+    pop ebx
+    mov esp, ebp
+    pop ebp

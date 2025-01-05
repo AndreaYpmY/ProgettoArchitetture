@@ -1,31 +1,43 @@
 %include "sseutils32.nasm"
 
 section .data
+    alignb 16
+    zero_mask dd 1.0, 1.0, 1.0, 0.0
 
 section .bss
     alignb 16
-    z   resd 1
+    z   resd 3
 
 section .text
 
 
-global norma
+global normaasm
 
 a equ 8
 
-norma:
-    start
+normaasm:
+    push ebp
+    mov ebp, esp
+    push ebx
 
     mov eax, [ebp + a]
 
     movaps  xmm0, [eax]
+    movaps  xmm1, xmm0
+
     mulps   xmm0, xmm0
     haddps  xmm0, xmm0
     haddps  xmm0, xmm0
     sqrtss  xmm0, xmm0
 
-    movss   [z], xmm0
-    fld dword [z]
+    shufps  xmm0, xmm0, 0
 
+    divps  xmm1, xmm0
+    movups  [z], xmm1
+    lea eax , [z]
 
-    stop
+    pop ebx
+    mov esp, ebp
+    pop ebp
+    ret
+
