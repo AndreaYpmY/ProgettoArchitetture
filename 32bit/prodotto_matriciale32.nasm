@@ -34,9 +34,6 @@ prodmat:
     movaps xmm2,  [ecx+16]
     movaps xmm3,  [ecx+32]
 
-    movaps [results], xmm3
-    ;printps results, 1
-
     ; moltiplicazione tra tutti gli elementi di xmm0 e xmm1
     mulps xmm1, xmm0
     ; somma di tutti gli elementi di xmm1
@@ -54,7 +51,6 @@ prodmat:
     mulps xmm3, xmm0
     haddps xmm3, xmm3
     haddps xmm3, xmm3
-
     movss [results+8], xmm3
 
     ; carico il riferimento di results in eax
