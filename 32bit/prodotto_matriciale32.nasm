@@ -1,14 +1,15 @@
 %include "sseutils32.nasm"
 
 section .data
-    alignb 16
-    zero_mask dd 1.0, 1.0, 1.0, 0.0
-    
+
+
+
 section .bss
     alignb 16
     results   resd 3
 
 section .text
+    
 
 global prodmat
 
@@ -25,19 +26,16 @@ prodmat:
     mov eax, [ebp + a]
     mov ecx, [ebp + b]
 
-    ; carica zero_mask in xmm6
-    movaps xmm6, [zero_mask]
-
     ; vettore di 3
     movaps xmm0,  [eax]
 
     ; matrice 3x3
     movaps xmm1,  [ecx]
-    mulps xmm1, xmm6
-    movups xmm2,  [ecx+12]
-    mulps xmm2, xmm6
-    movups xmm3,  [ecx+24]
-    mulps xmm3, xmm6
+    movaps xmm2,  [ecx+16]
+    movaps xmm3,  [ecx+32]
+
+    movaps [results], xmm3
+    ;printps results, 1
 
     ; moltiplicazione tra tutti gli elementi di xmm0 e xmm1
     mulps xmm1, xmm0
@@ -52,9 +50,11 @@ prodmat:
     haddps xmm2, xmm2
     movss [results+4], xmm2
 
+
     mulps xmm3, xmm0
     haddps xmm3, xmm3
     haddps xmm3, xmm3
+
     movss [results+8], xmm3
 
     ; carico il riferimento di results in eax

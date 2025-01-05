@@ -281,12 +281,11 @@ extern type dist(VECTOR a, VECTOR b);
 extern VECTOR norma(VECTOR v);
 extern type rama(VECTOR phi, VECTOR psi, int n);
 extern VECTOR prodmat(type* a, MATRIX b);
-extern type prodscal(type *a, type *b);
 
 
 
 //prodotto scalare
-type p(type *a, type *b, int n){
+type prod_scalare(type *a, type *b, int n){
 	type ris=0.0;
 	for(int i=0; i<n;i++){
 		ris+=a[i]*b[i];
@@ -294,47 +293,40 @@ type p(type *a, type *b, int n){
 	return ris;
 }
 
+//coseno
 type coseno(type x){
 	return 1-((x*x)/2)+((x*x*x*x)/24)-((x*x*x*x*x*x)/720);
 }
+
+//seno
 type seno(type x){
 	return x-((x*x*x)/6)+((x*x*x*x*x)/120)-((x*x*x*x*x*x*x)/5040);
 }
 
+//rotation
 void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	const int n=3;
-	type ps = p(axis,axis,3);
-	//type ps= prodscal(axis,axis);
+	type ps = prod_scalare(axis,axis,3);
 	for(int k=0; k<n; k++)
 		axis[k] = axis[k]/ps;
 	type a= coseno((theta/2.0));
 	type b= -1*axis[0]*seno((theta/2.0));
 	type c= -1*axis[1]*seno((theta/2.0));
 	type d= -1*axis[2]*seno((theta/2.0));
-
-	/* Versione 
+	
 	matrix[0]=a*a+b*b-c*c-d*d;
-	matrix[1]=2*(b*c+a*d);
-	matrix[2]=2*(b*d-a*c);
-	matrix[3]=2*(b*c-a*d);
-	matrix[4]=a*a+c*c-b*b-d*d;
-	matrix[5]=2*(c*d+a*b);
-	matrix[6]=2*(b*d+a*c);
-	matrix[7]=2*(c*d-a*b);
-	matrix[8]=a*a+d*d-b*b-c*c;
-	*/
-	matrix[0]=a*a+b*b-c*c-d*d;
-	matrix[3]=2*(b*c+a*d);
-	matrix[6]=2*(b*d-a*c);
+	matrix[4]=2*(b*c+a*d);
+	matrix[8]=2*(b*d-a*c);
 	matrix[1]=2*(b*c-a*d);
-	matrix[4]=a*a+c*c-b*b-d*d;
-	matrix[7]=2*(c*d+a*b);
+	matrix[5]=a*a+c*c-b*b-d*d;
+	matrix[9]=2*(c*d+a*b);
 	matrix[2]=2*(b*d+a*c);
-	matrix[5]=2*(c*d-a*b);
-	matrix[8]=a*a+d*d-b*b-c*c;
+	matrix[6]=2*(c*d-a*b);
+	matrix[10]=a*a+d*d-b*b-c*c;
+	matrix[3]=0.0;
+	matrix[7]=0.0;
+	matrix[11]=0.0;
 }
-
-
 
 // moltiplicazione matriciale
 void prod_mat(type* a, MATRIX b, type* ris, int n){
@@ -351,11 +343,7 @@ void prod_mat(type* a, MATRIX b, type* ris, int n){
     }
 }
 
-
-
-
-
-// s: sequenza di amminoacidi
+//backbone
 void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	int n = 256; // lunghezza sequenza
 	type r_ca_n = 1.46; //distanza CA-N
@@ -367,54 +355,25 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	type theta_c_n_ca=2.124;
 	type theta_n_ca_c=1.940;
 	
-	/*
-		Struttura coords:
-			coords[A][B][C] = ...
-			A: indice amminoacido 
-			B: indice atomo: 0=N, 1=C alpha, 2=C
-			C: coordinata: 0=x, 1=y, 2=z
-
-		    coords[A][B] = ...
-			A: indice amminoacio (ogni 3) + indice atomo
-			B: coordinata: 0=x, 1=y, 2=z
-			pos. 0: 1° amminoacido
-			pos. 3: 2° amminoacido
-
-			coords[A] = ...
-			A: indice amminoacio (ogni 9)  + indice atomo + coordinata 
-			pos. 0: 1° amminoacido, atomo N, coordinata x
-			pos. 1: 1° amminoacido, atomo N, coordinata y
-			pos. 2: 1° amminoacido, atomo N, coordinata z
-			pos. 3: 1° amminoacido, atomo C alpha, coordinata x
-			- - -
-			pos. 9: 2° amminoacido, atomo N, coordinata x
-			pos. 10: 2° amminoacido, atomo N, coordinata y
-	*/
-
-	//N
+	//Inizzializzazioni
 	coords[0] = 0; 
 	coords[1] = 0;
 	coords[2] = 0;
-
-	//C alpha
 	coords[3] = r_ca_n;
 	coords[4] = 0;
 	coords[5] = 0;
 
-	// Vettori e matrici utilizzati
 	type* v1;
 	type* v2;
 	type* v3;
 	MATRIX rot;
 	type* newv;
 	type* vettore_ausilio;
-	int w=0;
 	
 	v1 = alloc_matrix(3,1);
 	v2 = alloc_matrix(3,1);
 	v3 = alloc_matrix(3,1);
-	rot = alloc_matrix(3,3);
-	newv = alloc_matrix(3,1);
+	rot = alloc_matrix(4,3);
 	vettore_ausilio = alloc_matrix(3,1);
 
 	vettore_ausilio[0] = 0;
@@ -426,6 +385,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		int idx= i*9;
 
 		if(i>0){
+
 			//		Posiziona N usando l'ultimo C
 			
 			// [i-1] indice amminoacido precedente, atomi C alpha e C, coordinate x,y,z
@@ -433,11 +393,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v1[1] = coords[idx-2]-coords[idx-5];
 			v1[2] = coords[idx-1]-coords[idx-4];
 			
-			// calcola norma
-			//type norma_v1 = norma(v1);
-			//for(int j=0; j<3; j++){
-			//	v1[j] = v1[j]/norma_v1;
-			//}
+			//calcolo norma e divisione
 			v1=norma(v1);
 
 			//rotazione
@@ -445,15 +401,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_c_n;
-			//prod_mat(vettore_ausilio, rot, newv, 3);
 			newv = prodmat(vettore_ausilio, rot);
-			
-			
-			/*printf("Newv: %f; %f; %f \n", newv[0], newv[1], newv[2]);
-			w++;
-			if(w>10)
-				exit(0);
-			*/
 
 			//posiziona N con le coordinate calcolate
 			coords[idx] = coords[idx-3]+newv[0];
@@ -468,11 +416,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v2[1] = coords[idx+1]-coords[idx-2];
 			v2[2] = coords[idx+2]-coords[idx-1];
 
-			// calcola norma
-			/*type norma_v2 = norma(v2);
-			for(int j=0; j<3; j++){
-				v2[j] = v2[j]/norma_v2;
-			}*/
+			// calcola norma e divisione
 			v2=norma(v2);
 
 			//rotazione
@@ -480,7 +424,6 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_ca_n;
-			//prod_mat(vettore_ausilio, rot, newv, 3);
 			newv = prodmat(vettore_ausilio, rot);
 
 			//posiziona C alpha con le coordinate calcolate
@@ -496,29 +439,24 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		v3[1] = coords[idx+4]-coords[idx+1];
 		v3[2] = coords[idx+5]-coords[idx+2];	
 
-		/* calcola norma
-		type norma_v3 = norma(v3);
-		for(int j=0; j<3; j++){
-			v3[j] = v3[j]/norma_v3;
-		}*/
+		// calcola norma e divisione
 		v3=norma(v3);
 
 		//rotazione
 		rotation(v3, psi[i], rot);
 
-
-
 		//moltiplicazione matriciale
 		vettore_ausilio[1] = r_ca_c;
-		//prod_mat(vettore_ausilio, rot, newv, 3);
 		newv = prodmat(vettore_ausilio, rot);
-
 
 		//posiziona C con le coordinate calcolate
 		coords[idx+6] = coords[idx+3]+newv[0];
 		coords[idx+7] = coords[idx+4]+newv[1];
 		coords[idx+8] = coords[idx+5]+newv[2];
 	}
+
+	dealloc_matrix(vettore_ausilio);
+	dealloc_matrix(rot);
 }
 
 type min(type a, type b){
@@ -526,25 +464,6 @@ type min(type a, type b){
 		return a;
 	return b;
 }
-
-type rama_energy(VECTOR phi, VECTOR psi, int n){
-	type alpha_phi=-57.8;
-	type alpha_psi=-47.0;
-	type beta_phi=-119.0;
-	type beta_psi=113.0;
-
-	type energy=0.0;
-	for(int i=0; i<n; i++){
-		type alpha_dist=sqrt(pow((phi[i]-alpha_phi),2)+pow((psi[i]-alpha_psi),2));
-		type beta_dist=sqrt(pow((phi[i]-beta_phi),2)+pow((psi[i]-beta_psi),2));
-		type min_dist=min(alpha_dist, beta_dist);
-		energy+=(0.5*min_dist);
-	}
-
-	return energy;
-}
-
-
 
 
 VECTOR get_C_alpha(MATRIX coords, int index){
@@ -555,6 +474,7 @@ VECTOR get_C_alpha(MATRIX coords, int index){
 	c_alpha[2] = coords[index+5];
 	return c_alpha;
 }
+
 
 type hydrophobicity_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
@@ -577,8 +497,11 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 			}
 		}
 	}
+	dealloc_matrix(c_alpha_i);
+	dealloc_matrix(c_alpha_j);
 	return energy;
 }
+
 
 type electrostatic_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
@@ -603,8 +526,11 @@ type electrostatic_energy(char* s, MATRIX coords, int n){
 			}
 		}
 	}
+	dealloc_matrix(c_alpha_i);
+	dealloc_matrix(c_alpha_j);
 	return energy;
 }
+
 
 type packing_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
@@ -615,15 +541,12 @@ type packing_energy(char* s, MATRIX coords, int n){
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
 
-
-
 	for(int i=0; i<n; i++){
 
 		int index_i = s[i] - 'A';
 		type density=0.0;
 
 		for(int j=0; j<n; j++){
-
 			int index_j = s[j] - 'A';
 			c_alpha_i = get_C_alpha(coords, i*9);
 			c_alpha_j = get_C_alpha(coords, j*9);
@@ -635,8 +558,11 @@ type packing_energy(char* s, MATRIX coords, int n){
 		}
 		energy += pow((volume[index_i]-density),2);
 	}
+	dealloc_matrix(c_alpha_i);
+	dealloc_matrix(c_alpha_j);
 	return energy;
 }
+
 
 type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	MATRIX coords;
@@ -645,18 +571,10 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	backbone(s, phi, psi, coords);
 	type total_energy=0.0;
 
-	/*for(int i=0; i<25; i++){
-		printf("Coords[%i]: %f \n ", i, coords[i]);
-	}
-	*/
-
-	//type rama_e =rama_energy(phi, psi, n);
 	type rama_e = rama(phi, psi, n);
 	type hydro_e = hydrophobicity_energy(s, coords, n);
 	type ele_e = electrostatic_energy(s, coords, n);
 	type pack_e = packing_energy(s, coords, n);
-
-	//printf("Rama: %f, Hydro: %f, Ele: %f, Pack: %f \n", rama_e, hydro_e, ele_e, pack_e);
 
 	type w_rama = 1.0;
 	type w_hidro = 0.5;
@@ -668,7 +586,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	total_energy += ele_e*w_elec;
 	total_energy += pack_e*w_pack;
 
-	//printf("Energia: %f \n", total_energy);
+	dealloc_matrix(coords);
 	return total_energy;
 }
 
@@ -676,35 +594,6 @@ type prob_accept(type delta_E, type k, type T){
 	type ris= exp(-delta_E/(k*T));
 	return ris;
 }
-
-void stampa_vettori(VECTOR phi, VECTOR psi, int n){
-	printf("phi: ");
-	for(int i=0; i<n; i++){
-		printf("%f, ", phi[i]);
-	}
-	printf("\n psi: ");
-	for(int i=0; i<n; i++){
-		printf("%f, ", psi[i]);
-	}
-	printf("\n");
-}
-
-void confronta_vettori(VECTOR v1, VECTOR v2, int n){
-	int c=0;
-	int indice=-1;
-	for(int i=0; i<n;i++){
-		if(v1[i]!=v2[i]){
-			c=1;
-			indice=i;
-			break;
-		}
-	}
-	if(c==0)
-		printf("Nessun cambio \n");
-	else
-		printf("Cambio in posizone: %d \n", indice);
-}
-
 
 
 void pst(params* input){
@@ -720,7 +609,6 @@ void pst(params* input){
 
 	
 	E = energy(s, phi, psi, n);
-	//exit (0);
 	int t=0;
 	
 	while (T>0.0){
@@ -761,36 +649,6 @@ void pst(params* input){
 	input->psi = psi;
 }
 
-void save_to_txt(const char* filename, MATRIX data1,MATRIX data2, int rows, int cols) {//TODO: Eliminare a fine test
- 
-    FILE* fp = fopen(filename, "w");
-    if (fp == NULL) {
-        printf("Errore nell'apertura del file '%s' per la scrittura!\n", filename);
-        exit(1);
-    }
- 
-    //fprintf(fp, "data1\n");
- 
-    // Scrive la matrice nel file
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            fprintf(fp, "%.5f ", data1[i * cols + j]);  // Stampa con 5 cifre decimali
-        }
-        fprintf(fp, "\n");
-    }
- 
-    //fprintf(fp,"data2\n");
- 
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            fprintf(fp, "%.5f ", data2[i * cols + j]);  // Stampa con 5 cifre decimali
-        }
-        fprintf(fp, "\n");
-    }
- 
-    fclose(fp);
-    printf("Dati salvati con successo nel file '%s'.\n", filename);
-}
 
 int main(int argc, char** argv) {
 	char fname_phi[256];
@@ -948,7 +806,6 @@ int main(int argc, char** argv) {
 
 	// COMMENTARE QUESTA RIGA!
 	//prova(input);
-	//
 
 	//
 	// Predizione struttura terziaria
@@ -957,7 +814,6 @@ int main(int argc, char** argv) {
 	pst(input);
 	t = clock() - t;
 	time = ((float)t)/CLOCKS_PER_SEC;
-	save_to_txt("../run/output/pst.txt", input->phi, input->psi, input->N, 1);//TODO: Eliminare a fine test
 
 	if(!input->silent)
 		printf("PST time = %.3f secs\n", time);
