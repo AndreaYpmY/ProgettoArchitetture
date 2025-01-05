@@ -31,7 +31,11 @@ psi equ 12
 n   equ 16
 
 rama:
-    start
+    push		ebp		
+	mov		ebp, esp	
+	push		ebx		
+	push		esi
+	push		edi
 
     mov eax,    [ebp + phi]
     mov ebx,    [ebp + psi]
@@ -89,8 +93,8 @@ for:
 
     ; -------------------------
 
-    movaps  xmm0,   [eax + ecx * 4+4]
-    movaps  xmm1,   [ebx + ecx * 4+4]
+    movaps  xmm0,   [eax + ecx * 4+16]
+    movaps  xmm1,   [ebx + ecx * 4+16]
 
     movaps  xmm2,   xmm0
     movaps  xmm3,   xmm1
@@ -137,8 +141,8 @@ for:
 
     ; ----------------------------
 
-    movaps  xmm0,   [eax + ecx * 4+8]
-    movaps  xmm1,   [ebx + ecx * 4+8]
+    movaps  xmm0,   [eax + ecx * 4+32]
+    movaps  xmm1,   [ebx + ecx * 4+32]
 
     movaps  xmm2,   xmm0
     movaps  xmm3,   xmm1
@@ -185,8 +189,8 @@ for:
 
     ; ----------------------------
 
-    movaps  xmm0,   [eax + ecx * 4+12]
-    movaps  xmm1,   [ebx + ecx * 4+12]
+    movaps  xmm0,   [eax + ecx * 4+48]
+    movaps  xmm1,   [ebx + ecx * 4+48]
 
     movaps  xmm2,   xmm0
     movaps  xmm3,   xmm1
@@ -238,4 +242,9 @@ for:
     movss   [z], xmm7
     fld dword [z]
 
-    stop
+    pop	edi		
+	pop	esi
+	pop	ebx
+	mov	esp, ebp	
+	pop	ebp		
+	ret	

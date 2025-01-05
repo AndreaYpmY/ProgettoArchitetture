@@ -15,7 +15,11 @@ a equ 8
 b equ 12
 
 prodscal:
-    start
+    push		ebp		
+	mov		ebp, esp	
+	push		ebx		
+	push		esi
+	push		edi
 
     mov eax, [ebp + a]
     mov ecx, [ebp + b]
@@ -26,8 +30,18 @@ prodscal:
     mulps   xmm0, xmm1
     haddps  xmm0, xmm0
     haddps  xmm0, xmm0
+    
+    ;shufps  xmm0, xmm0, 0
+    ;divps   xmm1, xmm0
+    ;movaps  [z],  xmm1
+    ;lea     eax,  [z]
+
     movss   [z], xmm0
     fld dword [z]
-    ;printss z
 
-    stop
+    pop	edi		
+	pop	esi
+	pop	ebx
+	mov	esp, ebp	
+	pop	ebp		
+	ret	

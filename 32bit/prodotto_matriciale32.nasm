@@ -19,6 +19,8 @@ prodmat:
     push ebp
     mov ebp, esp
     push ebx
+    push esi
+    push edi
 
     mov eax, [ebp + a]
     mov ecx, [ebp + b]
@@ -58,6 +60,8 @@ prodmat:
     ; carico il riferimento di results in eax
     lea eax, [results]
 
+    pop edi
+    pop esi
     pop ebx
     mov esp, ebp
     pop ebp

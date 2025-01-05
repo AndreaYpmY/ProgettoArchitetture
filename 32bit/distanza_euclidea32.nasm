@@ -15,7 +15,11 @@ a equ 8
 b equ 12
 
 dist:
-    start
+    push		ebp		
+	mov		ebp, esp	
+	push		ebx		
+	push		esi
+	push		edi
 
     ;distance euclidea tra due vettori
     ;distanza = sqrt((x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2)
@@ -35,4 +39,9 @@ dist:
     movss   [z], xmm0
     fld dword [z]
 
-    stop
+    pop	edi		
+	pop	esi
+	pop	ebx
+	mov	esp, ebp	
+	pop	ebp		
+	ret	

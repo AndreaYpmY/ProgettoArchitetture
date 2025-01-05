@@ -14,9 +14,12 @@ global norma
 a equ 8
 
 norma:
-    push ebp
-    mov ebp, esp
-    push ebx
+    push		ebp		
+	mov		ebp, esp	
+	push		ebx		
+	push		esi
+	push		edi
+
 
     mov eax, [ebp + a]
 
@@ -33,6 +36,10 @@ norma:
     movaps  [z], xmm1
     lea eax , [z]
 
-    pop ebx
-    mov esp, ebp
-    pop ebp
+ 
+    pop	edi		
+	pop	esi
+	pop	ebx
+	mov	esp, ebp	
+	pop	ebp		
+	ret

@@ -303,8 +303,8 @@ type seno(type x){
 
 void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	const int n=3;
-	//type ps = p(axis,axis,3);
-	type ps= prodscal(axis,axis);
+	type ps = p(axis,axis,3);
+	//type ps= prodscal(axis,axis);
 	for(int k=0; k<n; k++)
 		axis[k] = axis[k]/ps;
 	type a= coseno((theta/2.0));
@@ -519,13 +519,6 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		coords[idx+7] = coords[idx+4]+newv[1];
 		coords[idx+8] = coords[idx+5]+newv[2];
 	}
-
-	dealloc_matrix(v1);
-	dealloc_matrix(v2);
-	dealloc_matrix(v3);
-	dealloc_matrix(rot);
-	dealloc_matrix(newv);
-	dealloc_matrix(vettore_ausilio);
 }
 
 type min(type a, type b){
@@ -556,6 +549,7 @@ type rama_energy(VECTOR phi, VECTOR psi, int n){
 
 VECTOR get_C_alpha(MATRIX coords, int index){
 	VECTOR c_alpha;
+	c_alpha = alloc_matrix(3,1);
 	c_alpha[0] = coords[index+3];
 	c_alpha[1] = coords[index+4];
 	c_alpha[2] = coords[index+5];
@@ -583,8 +577,6 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 			}
 		}
 	}
-	dealloc_matrix(c_alpha_i);
-	dealloc_matrix(c_alpha_j);
 	return energy;
 }
 
@@ -611,10 +603,6 @@ type electrostatic_energy(char* s, MATRIX coords, int n){
 			}
 		}
 	}
-
-	dealloc_matrix(c_alpha_i);
-	dealloc_matrix(c_alpha_j);
-
 	return energy;
 }
 
@@ -647,10 +635,6 @@ type packing_energy(char* s, MATRIX coords, int n){
 		}
 		energy += pow((volume[index_i]-density),2);
 	}
-
-	dealloc_matrix(c_alpha_i);
-	dealloc_matrix(c_alpha_j);
-
 	return energy;
 }
 
@@ -685,7 +669,6 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	total_energy += pack_e*w_pack;
 
 	//printf("Energia: %f \n", total_energy);
-	dealloc_matrix(coords);
 	return total_energy;
 }
 
