@@ -540,21 +540,44 @@ VECTOR get_C_alpha(MATRIX coords, int index){
 	return c_alpha;
 }
 
+VECTOR c_alpha(MATRIX coords, int n){
+	VECTOR all_C_alpha;
+	all_C_alpha = alloc_matrix(n*3, 1);
+	for(int i = 0; i< n; i++){
+		all_C_alpha[i*3] = coords[(i*9)+3];
+		all_C_alpha[(i*3)+1] = coords[(i*9)+4];
+		all_C_alpha[(i*3)+2] = coords[(i*9)+5];
+	}
+	return all_C_alpha;
+}
+
+
 type hydrophobicity_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
+	type distanza;
+	VECTOR all_c_alpha;
+
+	all_c_alpha = alloc_matrix(n*3, 1);
+	all_c_alpha = c_alpha(coords, n); 
 
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
 
-
 	for(int i=0; i < n; i++){
-		c_alpha_i = get_C_alpha(coords, i*9);
+		//c_alpha_i = get_C_alpha(coords, i*9);
+		c_alpha_i[0] = all_c_alpha[i*3];
+		c_alpha_i[1] = all_c_alpha[(i*3)+1];
+		c_alpha_i[2] = all_c_alpha[(i*3)+2];
 
 		for(int j=i+1; j<n; j++){
-			c_alpha_j = get_C_alpha(coords, j*9);
-			type distanza=dist(c_alpha_i, c_alpha_j);
+			//c_alpha_j = get_C_alpha(coords, j*9);
+			c_alpha_j[0] = all_c_alpha[j*3];
+			c_alpha_j[1] = all_c_alpha[(j*3)+1];
+			c_alpha_j[2] = all_c_alpha[(j*3)+2];
+			
+			distanza = dist(c_alpha_i, c_alpha_j);
 			if(distanza < 10.0){
 			int index_i = s[i] - 'A';
 			int index_j = s[j] - 'A';
@@ -562,58 +585,89 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 			}
 		}
 	}
+	dealloc_matrix(c_alpha_i);
+	dealloc_matrix(c_alpha_j);
 	return energy;
 }
+
 
 type electrostatic_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
 
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
+	type distanza;
+
+	VECTOR all_c_alpha;
+
+	all_c_alpha = alloc_matrix(n*3, 1);
+	all_c_alpha = c_alpha(coords, n); 
 
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
 
 	for(int i=0; i<n;i++){
+		c_alpha_i[0] = all_c_alpha[i*3];
+		c_alpha_i[1] = all_c_alpha[(i*3)+1];
+		c_alpha_i[2] = all_c_alpha[(i*3)+2];
+
 		for(int j=i+1; j<n; j++){
-			c_alpha_i = get_C_alpha(coords, i*9);
-			c_alpha_j = get_C_alpha(coords, j*9);
-			type distanza=dist(c_alpha_i, c_alpha_j);
+			//c_alpha_i = get_C_alpha(coords, i*9);
+			//c_alpha_j = get_C_alpha(coords, j*9);
+
+			
+			c_alpha_j[0] = all_c_alpha[j*3];
+			c_alpha_j[1] = all_c_alpha[(j*3)+1];
+			c_alpha_j[2] = all_c_alpha[(j*3)+2];
+			
+			distanza = dist(c_alpha_i, c_alpha_j);
 
 			int index_i = s[i] - 'A';
 			int index_j = s[j] - 'A';
 
 			if(i!=j && distanza < 10.0 && charge[index_i]!=0 && charge[index_j]!=0){
-				energy += (charge[index_i]*charge[index_j])/(distanza*4.0);
+				energy += (charge[index_i]*charge[index_j])/(distanza *4.0);
 			}
 		}
 	}
-
+	dealloc_matrix(c_alpha_i);
+	dealloc_matrix(c_alpha_j);
 	return energy;
 }
+
 
 type packing_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
 
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
+	type distanza;
+
+	VECTOR all_c_alpha;
+
+	all_c_alpha = alloc_matrix(n*3, 1);
+	all_c_alpha = c_alpha(coords, n);
 
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
-
-
 
 	for(int i=0; i<n; i++){
 
 		int index_i = s[i] - 'A';
 		type density=0.0;
+		c_alpha_i[0] = all_c_alpha[i*3];
+		c_alpha_i[1] = all_c_alpha[(i*3)+1];
+		c_alpha_i[2] = all_c_alpha[(i*3)+2];
 
 		for(int j=0; j<n; j++){
-
 			int index_j = s[j] - 'A';
-			c_alpha_i = get_C_alpha(coords, i*9);
-			c_alpha_j = get_C_alpha(coords, j*9);
-			type distanza=dist(c_alpha_i, c_alpha_j);
+			//c_alpha_i = get_C_alpha(coords, i*9);
+			//c_alpha_j = get_C_alpha(coords, j*9);
+			c_alpha_j[0] = all_c_alpha[j*3];
+			c_alpha_j[1] = all_c_alpha[(j*3)+1];
+			c_alpha_j[2] = all_c_alpha[(j*3)+2];
+			
+			distanza = dist(c_alpha_i, c_alpha_j);
 
 			if(i!=j && distanza < 10.0){
 				density += (volume[index_j]/pow(distanza,3));
@@ -621,7 +675,8 @@ type packing_energy(char* s, MATRIX coords, int n){
 		}
 		energy += pow((volume[index_i]-density),2);
 	}
-
+	dealloc_matrix(c_alpha_i);
+	dealloc_matrix(c_alpha_j);
 	return energy;
 }
 
@@ -692,7 +747,6 @@ void confronta_vettori(VECTOR v1, VECTOR v2, int n){
 }
 
 
-
 void pst(params* input){
 	int n = input->N;
 	char* s = input->seq;
@@ -761,7 +815,7 @@ void save_to_txt(const char* filename, MATRIX data1,MATRIX data2, int rows, int 
     // Scrive la matrice nel file
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            fprintf(fp, "%.5f ", data1[i * cols + j]);  // Stampa con 5 cifre decimali
+            fprintf(fp, "%.6f ", data1[i * cols + j]);  // Stampa con 5 cifre decimali
         }
         fprintf(fp, "\n");
     }
@@ -770,7 +824,7 @@ void save_to_txt(const char* filename, MATRIX data1,MATRIX data2, int rows, int 
  
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            fprintf(fp, "%.5f ", data2[i * cols + j]);  // Stampa con 5 cifre decimali
+            fprintf(fp, "%.6f ", data2[i * cols + j]);  // Stampa con 5 cifre decimali
         }
         fprintf(fp, "\n");
     }
@@ -944,7 +998,7 @@ int main(int argc, char** argv) {
 	pst(input);
 	t = clock() - t;
 	time = ((float)t)/CLOCKS_PER_SEC;
-	save_to_txt("../run/output/pst.txt", input->phi, input->psi, input->N, 1);//TODO: Eliminare a fine test
+	save_to_txt("../run/output64/pst64.txt", input->phi, input->psi, input->N, 1);//TODO: Eliminare a fine test
 
 	if(!input->silent)
 		printf("PST time = %.3f secs\n", time);
