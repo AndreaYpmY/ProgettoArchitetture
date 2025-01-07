@@ -29,6 +29,7 @@ global rama
 phi equ 8
 psi equ 12
 n   equ 16
+e equ 20
 
 rama:
     push		ebp		
@@ -239,9 +240,8 @@ for:
     cmp ecx,    edi
     jb   for
 
-    movss   [z], xmm7
-    ;fld dword [z]
-    lea eax, [z]
+    mov eax, [ebp + e]
+    movss [eax], xmm7
 
     pop	edi		
 	pop	esi

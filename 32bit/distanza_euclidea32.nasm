@@ -13,6 +13,7 @@ global dist
 
 a equ 8
 b equ 12
+dista equ 16
 
 dist:
     push		ebp		
@@ -36,9 +37,8 @@ dist:
     haddps  xmm0, xmm0
     sqrtss  xmm0, xmm0
 
-    movss   [z], xmm0
-    ;fld dword [z]
-    lea eax, [z]
+    mov eax, [ebp + dista]
+    movss [eax], xmm0
 
     pop	edi		
 	pop	esi

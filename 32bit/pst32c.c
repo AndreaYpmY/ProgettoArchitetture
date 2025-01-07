@@ -277,9 +277,9 @@ void gen_rnd_mat(VECTOR v, int N){
 
 // PROCEDURE ASSEMBLY
 //extern void prova(params* input);
-extern type* dist(VECTOR a, VECTOR b); // ritorna un solo valore
+extern void dist(VECTOR a, VECTOR b, type* dista); // ritorna un solo valore
 extern VECTOR norma(VECTOR v);
-extern type* rama(VECTOR phi, VECTOR psi, int n); // ritorna un solo valore
+extern void rama(VECTOR phi, VECTOR psi, int n, type* rama_e); // ritorna un solo valore
 extern VECTOR prodmat(type* a, MATRIX b);
 
 
@@ -394,7 +394,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v1[2] = coords[idx-1]-coords[idx-4];
 			
 			//calcolo norma e divisione
-			v1=norma(v1);
+			v1 = norma(v1);
 
 			//rotazione
 			rotation(v1, theta_c_n_ca, rot);
@@ -417,7 +417,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v2[2] = coords[idx+2]-coords[idx-1];
 
 			// calcola norma e divisione
-			v2=norma(v2);
+			v2 = norma(v2);
 
 			//rotazione
 			rotation(v2, phi[i], rot);
@@ -440,7 +440,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		v3[2] = coords[idx+5]-coords[idx+2];	
 
 		// calcola norma e divisione
-		v3=norma(v3);
+		v3 = norma(v3);
 
 		//rotazione
 		rotation(v3, psi[i], rot);
@@ -480,6 +480,7 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
+	type distanza;
 
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
@@ -489,11 +490,11 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 
 		for(int j=i+1; j<n; j++){
 			c_alpha_j = get_C_alpha(coords, j*9);
-			type* distanza=dist(c_alpha_i, c_alpha_j);
-			if(distanza[0] < 10.0){
+			dist(c_alpha_i, c_alpha_j, &distanza);
+			if(distanza < 10.0){
 			int index_i = s[i] - 'A';
 			int index_j = s[j] - 'A';
-			energy += (hydrophobicity[index_i]*hydrophobicity[index_j])/distanza[0];
+			energy += (hydrophobicity[index_i]*hydrophobicity[index_j])/distanza;
 			}
 		}
 	}
@@ -508,6 +509,7 @@ type electrostatic_energy(char* s, MATRIX coords, int n){
 
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
+	type distanza;
 
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
@@ -516,13 +518,13 @@ type electrostatic_energy(char* s, MATRIX coords, int n){
 		for(int j=i+1; j<n; j++){
 			c_alpha_i = get_C_alpha(coords, i*9);
 			c_alpha_j = get_C_alpha(coords, j*9);
-			type* distanza=dist(c_alpha_i, c_alpha_j);
+			dist(c_alpha_i, c_alpha_j, &distanza);
 
 			int index_i = s[i] - 'A';
 			int index_j = s[j] - 'A';
 
-			if(i!=j && distanza[0] < 10.0 && charge[index_i]!=0 && charge[index_j]!=0){
-				energy += (charge[index_i]*charge[index_j])/(distanza[0]*4.0);
+			if(i!=j && distanza < 10.0 && charge[index_i]!=0 && charge[index_j]!=0){
+				energy += (charge[index_i]*charge[index_j])/(distanza *4.0);
 			}
 		}
 	}
@@ -537,6 +539,7 @@ type packing_energy(char* s, MATRIX coords, int n){
 
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
+	type distanza;
 
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
@@ -550,10 +553,10 @@ type packing_energy(char* s, MATRIX coords, int n){
 			int index_j = s[j] - 'A';
 			c_alpha_i = get_C_alpha(coords, i*9);
 			c_alpha_j = get_C_alpha(coords, j*9);
-			type* distanza=dist(c_alpha_i, c_alpha_j);
+			dist(c_alpha_i, c_alpha_j, &distanza);
 
-			if(i!=j && distanza[0] < 10.0){
-				density += (volume[index_j]/pow(distanza[0],3));
+			if(i!=j && distanza < 10.0){
+				density += (volume[index_j]/pow(distanza,3));
 			}
 		}
 		energy += pow((volume[index_i]-density),2);
@@ -570,8 +573,8 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 
 	backbone(s, phi, psi, coords);
 	type total_energy=0.0;
-
-	type* rama_e = rama(phi, psi, n);
+	type rama_e;
+	rama(phi, psi, n, &rama_e);
 	type hydro_e = hydrophobicity_energy(s, coords, n);
 	type ele_e = electrostatic_energy(s, coords, n);
 	type pack_e = packing_energy(s, coords, n);
@@ -581,7 +584,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	type w_elec = 0.2;
 	type w_pack = 0.3;
 
-	total_energy += rama_e[0]*w_rama;
+	total_energy += rama_e*w_rama;
 	total_energy += hydro_e*w_hidro;
 	total_energy += ele_e*w_elec;
 	total_energy += pack_e*w_pack;
