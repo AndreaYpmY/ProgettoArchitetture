@@ -277,9 +277,9 @@ void gen_rnd_mat(VECTOR v, int N){
 
 // PROCEDURE ASSEMBLY
 //extern void prova(params* input);
-extern type dist(VECTOR a, VECTOR b);
+extern type* dist(VECTOR a, VECTOR b); // ritorna un solo valore
 extern VECTOR norma(VECTOR v);
-extern type rama(VECTOR phi, VECTOR psi, int n);
+extern type* rama(VECTOR phi, VECTOR psi, int n); // ritorna un solo valore
 extern VECTOR prodmat(type* a, MATRIX b);
 
 
@@ -489,11 +489,11 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 
 		for(int j=i+1; j<n; j++){
 			c_alpha_j = get_C_alpha(coords, j*9);
-			type distanza=dist(c_alpha_i, c_alpha_j);
-			if(distanza < 10.0){
+			type* distanza=dist(c_alpha_i, c_alpha_j);
+			if(distanza[0] < 10.0){
 			int index_i = s[i] - 'A';
 			int index_j = s[j] - 'A';
-			energy += (hydrophobicity[index_i]*hydrophobicity[index_j])/distanza;
+			energy += (hydrophobicity[index_i]*hydrophobicity[index_j])/distanza[0];
 			}
 		}
 	}
@@ -516,13 +516,13 @@ type electrostatic_energy(char* s, MATRIX coords, int n){
 		for(int j=i+1; j<n; j++){
 			c_alpha_i = get_C_alpha(coords, i*9);
 			c_alpha_j = get_C_alpha(coords, j*9);
-			type distanza=dist(c_alpha_i, c_alpha_j);
+			type* distanza=dist(c_alpha_i, c_alpha_j);
 
 			int index_i = s[i] - 'A';
 			int index_j = s[j] - 'A';
 
-			if(i!=j && distanza < 10.0 && charge[index_i]!=0 && charge[index_j]!=0){
-				energy += (charge[index_i]*charge[index_j])/(distanza*4.0);
+			if(i!=j && distanza[0] < 10.0 && charge[index_i]!=0 && charge[index_j]!=0){
+				energy += (charge[index_i]*charge[index_j])/(distanza[0]*4.0);
 			}
 		}
 	}
@@ -550,10 +550,10 @@ type packing_energy(char* s, MATRIX coords, int n){
 			int index_j = s[j] - 'A';
 			c_alpha_i = get_C_alpha(coords, i*9);
 			c_alpha_j = get_C_alpha(coords, j*9);
-			type distanza=dist(c_alpha_i, c_alpha_j);
+			type* distanza=dist(c_alpha_i, c_alpha_j);
 
-			if(i!=j && distanza < 10.0){
-				density += (volume[index_j]/pow(distanza,3));
+			if(i!=j && distanza[0] < 10.0){
+				density += (volume[index_j]/pow(distanza[0],3));
 			}
 		}
 		energy += pow((volume[index_i]-density),2);
@@ -571,7 +571,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	backbone(s, phi, psi, coords);
 	type total_energy=0.0;
 
-	type rama_e = rama(phi, psi, n);
+	type* rama_e = rama(phi, psi, n);
 	type hydro_e = hydrophobicity_energy(s, coords, n);
 	type ele_e = electrostatic_energy(s, coords, n);
 	type pack_e = packing_energy(s, coords, n);
@@ -581,7 +581,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	type w_elec = 0.2;
 	type w_pack = 0.3;
 
-	total_energy += rama_e*w_rama;
+	total_energy += rama_e[0]*w_rama;
 	total_energy += hydro_e*w_hidro;
 	total_energy += ele_e*w_elec;
 	total_energy += pack_e*w_pack;

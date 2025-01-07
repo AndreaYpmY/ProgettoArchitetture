@@ -240,7 +240,8 @@ for:
     jb   for
 
     movss   [z], xmm7
-    fld dword [z]
+    ;fld dword [z]
+    lea eax, [z]
 
     pop	edi		
 	pop	esi

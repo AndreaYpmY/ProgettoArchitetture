@@ -37,7 +37,8 @@ dist:
     sqrtss  xmm0, xmm0
 
     movss   [z], xmm0
-    fld dword [z]
+    ;fld dword [z]
+    lea eax, [z]
 
     pop	edi		
 	pop	esi
