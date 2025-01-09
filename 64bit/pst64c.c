@@ -91,7 +91,7 @@ typedef struct {
 */
 
 void* get_block(int size, int elements) { 
-	return _mm_malloc(elements*size,16); 
+	return _mm_malloc(elements*size,32); 
 }
 
 void free_block(void* p) { 
@@ -276,7 +276,11 @@ void gen_rnd_mat(VECTOR v, int N){
 }
 
 // PROCEDURE ASSEMBLY
-extern void prova(params* input);
+//extern void prova(params* input);
+extern void dist(VECTOR a, VECTOR b, type* dist);
+
+
+
 
 //prodotto scalare
 type p(type *a, type *b, int n){
@@ -527,9 +531,9 @@ type distanza_euclidea(VECTOR a, VECTOR b, int n){
 	return sqrt(ris);
 }
 
-type dist(VECTOR A1, VECTOR A2){
+/*type dist(VECTOR A1, VECTOR A2){
 	return distanza_euclidea(A1, A2, 3);
-}
+}*/
 
 VECTOR get_C_alpha(MATRIX coords, int index){
 	VECTOR c_alpha;
@@ -577,7 +581,15 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 			c_alpha_j[1] = all_c_alpha[(j*3)+1];
 			c_alpha_j[2] = all_c_alpha[(j*3)+2];
 			
-			distanza = dist(c_alpha_i, c_alpha_j);
+			//printf("C_alpha_i: %lf, %lf, %lf \n", c_alpha_i[0], c_alpha_i[1], c_alpha_i[2]);
+			//printf("C_alpha_j: %lf, %lf, %lf \n", c_alpha_j[0], c_alpha_j[1], c_alpha_j[2]);
+
+			dist(c_alpha_i, c_alpha_j, &distanza);
+			//distanza = dist(c_alpha_i, c_alpha_j);
+			
+			//printf("Distanza %lf \n", distanza);
+			//exit(0);
+
 			if(distanza < 10.0){
 			int index_i = s[i] - 'A';
 			int index_j = s[j] - 'A';
@@ -587,6 +599,7 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 	}
 	dealloc_matrix(c_alpha_i);
 	dealloc_matrix(c_alpha_j);
+	dealloc_matrix(all_c_alpha);
 	return energy;
 }
 
@@ -620,7 +633,12 @@ type electrostatic_energy(char* s, MATRIX coords, int n){
 			c_alpha_j[1] = all_c_alpha[(j*3)+1];
 			c_alpha_j[2] = all_c_alpha[(j*3)+2];
 			
-			distanza = dist(c_alpha_i, c_alpha_j);
+			//printf("C_alpha_i: %lf, %lf, %lf \n", c_alpha_i[0], c_alpha_i[1], c_alpha_i[2]);
+			//printf("C_alpha_j: %lf, %lf, %lf \n", c_alpha_j[0], c_alpha_j[1], c_alpha_j[2]);
+			//exit(0);
+			dist(c_alpha_i, c_alpha_j, &distanza);
+			//distanza = dist(c_alpha_i, c_alpha_j);
+
 
 			int index_i = s[i] - 'A';
 			int index_j = s[j] - 'A';
@@ -632,6 +650,7 @@ type electrostatic_energy(char* s, MATRIX coords, int n){
 	}
 	dealloc_matrix(c_alpha_i);
 	dealloc_matrix(c_alpha_j);
+	dealloc_matrix(all_c_alpha);
 	return energy;
 }
 
@@ -667,7 +686,11 @@ type packing_energy(char* s, MATRIX coords, int n){
 			c_alpha_j[1] = all_c_alpha[(j*3)+1];
 			c_alpha_j[2] = all_c_alpha[(j*3)+2];
 			
-			distanza = dist(c_alpha_i, c_alpha_j);
+			//printf("C_alpha_i: %lf, %lf, %lf \n", c_alpha_i[0], c_alpha_i[1], c_alpha_i[2]);
+			//printf("C_alpha_j: %lf, %lf, %lf \n", c_alpha_j[0], c_alpha_j[1], c_alpha_j[2]);
+			//exit(0);
+			dist(c_alpha_i, c_alpha_j, &distanza);
+			//distanza = dist(c_alpha_i, c_alpha_j);
 
 			if(i!=j && distanza < 10.0){
 				density += (volume[index_j]/pow(distanza,3));
@@ -677,6 +700,7 @@ type packing_energy(char* s, MATRIX coords, int n){
 	}
 	dealloc_matrix(c_alpha_i);
 	dealloc_matrix(c_alpha_j);
+	dealloc_matrix(all_c_alpha);
 	return energy;
 }
 
@@ -698,6 +722,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	type pack_e = packing_energy(s, coords, n);
 
 	//printf("Rama: %f, Hydro: %f, Ele: %f, Pack: %f \n", rama_e, hydro_e, ele_e, pack_e);
+	//exit(0);
 
 	type w_rama = 1.0;
 	type w_hidro = 0.5;
@@ -710,6 +735,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	total_energy += pack_e*w_pack;
 
 	//printf("Energia: %f \n", total_energy);
+	dealloc_matrix(coords);
 	return total_energy;
 }
 
@@ -765,9 +791,8 @@ void pst(params* input){
 	
 	while (T>0.0){
 		int i = (random() * n);
-		
-		
-		
+	
+			
 		type theta_phi= (random()*2 * M_PI) - M_PI;
 		phi[i]=phi[i]+theta_phi;
 
@@ -775,7 +800,11 @@ void pst(params* input){
 		type theta_psi= (random()*2 * M_PI) - M_PI;
 		psi[i]=psi[i]+theta_psi;
 
+		
+		
 		type E_new = energy(s, phi, psi, n);
+		//exit(0);
+		
 		type delta_E = E_new - E;
 
 		if(delta_E <= 0){
