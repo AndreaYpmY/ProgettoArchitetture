@@ -279,6 +279,8 @@ void gen_rnd_mat(VECTOR v, int N){
 //extern void prova(params* input);
 extern void dist(VECTOR a, VECTOR b, type* dist);
 extern void prodmat(VECTOR a, MATRIX b, VECTOR results);
+extern void norma(VECTOR v, type* norma);
+extern void rama(VECTOR phi, VECTOR psi, int n, type* rama_e);
 
 
 
@@ -335,13 +337,13 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	matrix[11]=0.0;
 }
 
-type norma(type* v, int n){
+/*type norma(type* v, int n){
 	type ris=0.0;
 	for(int i=0; i<n; i++){
 		ris+=v[i]*v[i];
 	}
 	return sqrt(ris);
-}
+}*/
 
 // moltiplicazione matriciale
 void prod_mat(type* a, MATRIX b, type* ris, int n){
@@ -441,10 +443,13 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v1[2] = coords[idx-1]-coords[idx-4];
 			
 			// calcola norma
-			type norma_v1 = norma(v1, 3);
+			type norma_v1;
+			norma(v1, &norma_v1);
 			for(int j=0; j<3; j++){
 				v1[j] = v1[j]/norma_v1;
 			}
+
+		
 
 			//rotazione
 			rotation(v1, theta_c_n_ca, rot);
@@ -468,10 +473,14 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v2[2] = coords[idx+2]-coords[idx-1];
 
 			// calcola norma
-			type norma_v2 = norma(v2, 3);
+			type norma_v2;
+			norma(v2, &norma_v2);
 			for(int j=0; j<3; j++){
 				v2[j] = v2[j]/norma_v2;
 			}
+		
+			
+			
 
 			//rotazione
 			rotation(v2, phi[i], rot);
@@ -495,7 +504,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		v3[2] = coords[idx+5]-coords[idx+2];	
 
 		// calcola norma
-		type norma_v3 = norma(v3, 3);
+		type norma_v3;
+		norma(v3, &norma_v3);
 		for(int j=0; j<3; j++){
 			v3[j] = v3[j]/norma_v3;
 		}
@@ -515,6 +525,10 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		coords[idx+7] = coords[idx+4]+newv[1];
 		coords[idx+8] = coords[idx+5]+newv[2];
 	}
+
+	dealloc_matrix(vettore_ausilio);
+	dealloc_matrix(rot);
+	dealloc_matrix(newv);
 }
 
 type min(type a, type b){
@@ -734,7 +748,10 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	}
 	*/
 
-	type rama_e =rama_energy(phi, psi, n);
+
+	type rama_e;
+	rama(phi, psi, n, &rama_e);
+	//type rama_e =rama_energy(phi, psi, n);
 	type hydro_e = hydrophobicity_energy(s, coords, n);
 	type ele_e = electrostatic_energy(s, coords, n);
 	type pack_e = packing_energy(s, coords, n);
