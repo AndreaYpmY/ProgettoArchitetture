@@ -278,6 +278,7 @@ void gen_rnd_mat(VECTOR v, int N){
 // PROCEDURE ASSEMBLY
 //extern void prova(params* input);
 extern void dist(VECTOR a, VECTOR b, type* dist);
+extern void prodmat(VECTOR a, MATRIX b, VECTOR results);
 
 
 
@@ -309,6 +310,7 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	type d= -1*axis[2]*seno((theta/2.0));
 
 	
+		/*
 	matrix[0]=a*a+b*b-c*c-d*d;
 	matrix[1]=2*(b*c+a*d);
 	matrix[2]=2*(b*d-a*c);
@@ -317,7 +319,20 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	matrix[5]=2*(c*d+a*b);
 	matrix[6]=2*(b*d+a*c);
 	matrix[7]=2*(c*d-a*b);
-	matrix[8]=a*a+d*d-b*b-c*c;
+	matrix[8]=a*a+d*d-b*b-c*c;*/
+
+	matrix[0]=a*a+b*b-c*c-d*d;
+	matrix[4]=2*(b*c+a*d);
+	matrix[8]=2*(b*d-a*c);
+	matrix[1]=2*(b*c-a*d);
+	matrix[5]=a*a+c*c-b*b-d*d;
+	matrix[9]=2*(c*d+a*b);
+	matrix[2]=2*(b*d+a*c);
+	matrix[6]=2*(c*d-a*b);
+	matrix[10]=a*a+d*d-b*b-c*c;
+	matrix[3]=0.0;
+	matrix[7]=0.0;
+	matrix[11]=0.0;
 }
 
 type norma(type* v, int n){
@@ -405,7 +420,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	v1 = alloc_matrix(3,1);
 	v2 = alloc_matrix(3,1);
 	v3 = alloc_matrix(3,1);
-	rot = alloc_matrix(3,3);
+	rot = alloc_matrix(4,3);
 	newv = alloc_matrix(3,1);
 	vettore_ausilio = alloc_matrix(3,1);
 
@@ -436,7 +451,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_c_n;
-			prod_mat(vettore_ausilio, rot, newv, 3);
+			//prod_mat(vettore_ausilio, rot, newv, 3);
+			prodmat(vettore_ausilio, rot, newv);
 
 			//posiziona N con le coordinate calcolate
 			coords[idx] = coords[idx-3]+newv[0];
@@ -462,7 +478,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_ca_n;
-			prod_mat(vettore_ausilio, rot, newv, 3);
+			//prod_mat(vettore_ausilio, rot, newv, 3);
+			prodmat(vettore_ausilio, rot, newv);
 
 			//posiziona C alpha con le coordinate calcolate
 			coords[idx+3] = coords[idx]+newv[0];
@@ -490,7 +507,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 
 		//moltiplicazione matriciale
 		vettore_ausilio[1] = r_ca_c;
-		prod_mat(vettore_ausilio, rot, newv, 3);
+		//prod_mat(vettore_ausilio, rot, newv, 3);
+		prodmat(vettore_ausilio, rot, newv);
 
 		//posiziona C con le coordinate calcolate
 		coords[idx+6] = coords[idx+3]+newv[0];
