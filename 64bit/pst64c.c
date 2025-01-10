@@ -279,7 +279,7 @@ void gen_rnd_mat(VECTOR v, int N){
 //extern void prova(params* input);
 extern void dist(VECTOR a, VECTOR b, type* dist);
 extern void prodmat(VECTOR a, MATRIX b, VECTOR results);
-extern void norma(VECTOR v, type* norma);
+extern void norma(VECTOR v, VECTOR vn);
 extern void rama(VECTOR phi, VECTOR psi, int n, type* rama_e);
 
 
@@ -311,17 +311,6 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	type c= -1*axis[1]*seno((theta/2.0));
 	type d= -1*axis[2]*seno((theta/2.0));
 
-	
-		/*
-	matrix[0]=a*a+b*b-c*c-d*d;
-	matrix[1]=2*(b*c+a*d);
-	matrix[2]=2*(b*d-a*c);
-	matrix[3]=2*(b*c-a*d);
-	matrix[4]=a*a+c*c-b*b-d*d;
-	matrix[5]=2*(c*d+a*b);
-	matrix[6]=2*(b*d+a*c);
-	matrix[7]=2*(c*d-a*b);
-	matrix[8]=a*a+d*d-b*b-c*c;*/
 
 	matrix[0]=a*a+b*b-c*c-d*d;
 	matrix[4]=2*(b*c+a*d);
@@ -337,33 +326,6 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	matrix[11]=0.0;
 }
 
-/*type norma(type* v, int n){
-	type ris=0.0;
-	for(int i=0; i<n; i++){
-		ris+=v[i]*v[i];
-	}
-	return sqrt(ris);
-}*/
-
-// moltiplicazione matriciale
-void prod_mat(type* a, MATRIX b, type* ris, int n){
-    int index=0;
-	int k=0;
-    for(int i=0; i<n; i++){
-        ris[i]=0;
-		index=0;
-        for(int j=0; j<n; j++){
-            ris[i]+=a[j]*b[j+index+k];
-            index+=2;
-        }
-		k++;
-    }
-}
-
-
-
-
-
 
 // s: sequenza di amminoacidi
 void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
@@ -377,29 +339,6 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	type theta_c_n_ca=2.124;
 	type theta_n_ca_c=1.940;
 	
-	/*
-		Struttura coords:
-			coords[A][B][C] = ...
-			A: indice amminoacido 
-			B: indice atomo: 0=N, 1=C alpha, 2=C
-			C: coordinata: 0=x, 1=y, 2=z
-
-		    coords[A][B] = ...
-			A: indice amminoacio (ogni 3) + indice atomo
-			B: coordinata: 0=x, 1=y, 2=z
-			pos. 0: 1° amminoacido
-			pos. 3: 2° amminoacido
-
-			coords[A] = ...
-			A: indice amminoacio (ogni 9)  + indice atomo + coordinata 
-			pos. 0: 1° amminoacido, atomo N, coordinata x
-			pos. 1: 1° amminoacido, atomo N, coordinata y
-			pos. 2: 1° amminoacido, atomo N, coordinata z
-			pos. 3: 1° amminoacido, atomo C alpha, coordinata x
-			- - -
-			pos. 9: 2° amminoacido, atomo N, coordinata x
-			pos. 10: 2° amminoacido, atomo N, coordinata y
-	*/
 
 	//N
 	coords[0] = 0; 
@@ -415,6 +354,9 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	type* v1;
 	type* v2;
 	type* v3;
+	VECTOR v1n;
+	VECTOR v2n;
+	VECTOR v3n;
 	MATRIX rot;
 	type* newv;
 	type* vettore_ausilio;
@@ -422,6 +364,10 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	v1 = alloc_matrix(3,1);
 	v2 = alloc_matrix(3,1);
 	v3 = alloc_matrix(3,1);
+	v1n = alloc_matrix(4,1);
+	v2n = alloc_matrix(4,1);
+	v3n = alloc_matrix(4,1);
+
 	rot = alloc_matrix(4,3);
 	newv = alloc_matrix(3,1);
 	vettore_ausilio = alloc_matrix(3,1);
@@ -443,16 +389,17 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v1[2] = coords[idx-1]-coords[idx-4];
 			
 			// calcola norma
-			type norma_v1;
+			/*type norma_v1;
 			norma(v1, &norma_v1);
 			for(int j=0; j<3; j++){
 				v1[j] = v1[j]/norma_v1;
-			}
+			}*/
+			norma(v1, v1n);
 
 		
 
 			//rotazione
-			rotation(v1, theta_c_n_ca, rot);
+			rotation(v1n, theta_c_n_ca, rot);
 
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_c_n;
@@ -473,17 +420,18 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v2[2] = coords[idx+2]-coords[idx-1];
 
 			// calcola norma
-			type norma_v2;
+			/*type norma_v2;
 			norma(v2, &norma_v2);
 			for(int j=0; j<3; j++){
 				v2[j] = v2[j]/norma_v2;
-			}
+			}*/
+			norma(v2, v2n);
 		
 			
 			
 
 			//rotazione
-			rotation(v2, phi[i], rot);
+			rotation(v2n, phi[i], rot);
 
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_ca_n;
@@ -504,14 +452,15 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		v3[2] = coords[idx+5]-coords[idx+2];	
 
 		// calcola norma
-		type norma_v3;
+		/*type norma_v3;
 		norma(v3, &norma_v3);
 		for(int j=0; j<3; j++){
 			v3[j] = v3[j]/norma_v3;
-		}
+		}*/
+		norma(v3, v3n);
 
 		//rotazione
-		rotation(v3, psi[i], rot);
+		rotation(v3n, psi[i], rot);
 
 
 
@@ -529,54 +478,16 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	dealloc_matrix(vettore_ausilio);
 	dealloc_matrix(rot);
 	dealloc_matrix(newv);
+	dealloc_matrix(v1);
+	dealloc_matrix(v2);
+	dealloc_matrix(v3);
+	dealloc_matrix(v1n);
+	dealloc_matrix(v2n);
+	dealloc_matrix(v3n);
 }
 
-type min(type a, type b){
-	if(a<b)
-		return a;
-	return b;
-}
 
-type rama_energy(VECTOR phi, VECTOR psi, int n){
-	type alpha_phi=-57.8;
-	type alpha_psi=-47.0;
-	type beta_phi=-119.0;
-	type beta_psi=113.0;
-
-	type energy=0.0;
-	for(int i=0; i<n; i++){
-		type alpha_dist=sqrt(pow((phi[i]-alpha_phi),2)+pow((psi[i]-alpha_psi),2));
-		type beta_dist=sqrt(pow((phi[i]-beta_phi),2)+pow((psi[i]-beta_psi),2));
-		type min_dist=min(alpha_dist, beta_dist);
-		energy+=(0.5*min_dist);
-	}
-
-	return energy;
-}
-
-type distanza_euclidea(VECTOR a, VECTOR b, int n){
-	type ris=0.0;
-	for(int i=0; i<n; i++){
-		//invertiti?
-		ris+=pow((b[i]-a[i]),2);
-	}
-	return sqrt(ris);
-}
-
-/*type dist(VECTOR A1, VECTOR A2){
-	return distanza_euclidea(A1, A2, 3);
-}*/
-
-VECTOR get_C_alpha(MATRIX coords, int index){
-	VECTOR c_alpha;
-	c_alpha = alloc_matrix(3,1); // x,y,z
-	c_alpha[0] = coords[index+3];
-	c_alpha[1] = coords[index+4];
-	c_alpha[2] = coords[index+5];
-	return c_alpha;
-}
-
-VECTOR c_alpha(MATRIX coords, int n){
+VECTOR get_C_alpha(MATRIX coords, int n){
 	VECTOR all_C_alpha;
 	all_C_alpha = alloc_matrix(n*3, 1);
 	for(int i = 0; i< n; i++){
@@ -596,7 +507,7 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 	VECTOR all_c_alpha;
 
 	all_c_alpha = alloc_matrix(n*3, 1);
-	all_c_alpha = c_alpha(coords, n); 
+	all_c_alpha = get_C_alpha(coords, n); 
 
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
@@ -646,7 +557,7 @@ type electrostatic_energy(char* s, MATRIX coords, int n){
 	VECTOR all_c_alpha;
 
 	all_c_alpha = alloc_matrix(n*3, 1);
-	all_c_alpha = c_alpha(coords, n); 
+	all_c_alpha = get_C_alpha(coords, n); 
 
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
@@ -697,7 +608,7 @@ type packing_energy(char* s, MATRIX coords, int n){
 	VECTOR all_c_alpha;
 
 	all_c_alpha = alloc_matrix(n*3, 1);
-	all_c_alpha = c_alpha(coords, n);
+	all_c_alpha = get_C_alpha(coords, n);
 
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
@@ -779,34 +690,6 @@ type prob_accept(type delta_E, type k, type T){
 	return ris;
 }
 
-void stampa_vettori(VECTOR phi, VECTOR psi, int n){
-	printf("phi: ");
-	for(int i=0; i<n; i++){
-		printf("%f, ", phi[i]);
-	}
-	printf("\n psi: ");
-	for(int i=0; i<n; i++){
-		printf("%f, ", psi[i]);
-	}
-	printf("\n");
-}
-
-void confronta_vettori(VECTOR v1, VECTOR v2, int n){
-	int c=0;
-	int indice=-1;
-	for(int i=0; i<n;i++){
-		if(v1[i]!=v2[i]){
-			c=1;
-			indice=i;
-			break;
-		}
-	}
-	if(c==0)
-		printf("Nessun cambio \n");
-	else
-		printf("Cambio in posizone: %d \n", indice);
-}
-
 
 void pst(params* input){
 	int n = input->N;
@@ -866,36 +749,6 @@ void pst(params* input){
 	input->psi = psi;
 }
 
-void save_to_txt(const char* filename, MATRIX data1,MATRIX data2, int rows, int cols) {//TODO: Eliminare a fine test
- 
-    FILE* fp = fopen(filename, "w");
-    if (fp == NULL) {
-        printf("Errore nell'apertura del file '%s' per la scrittura!\n", filename);
-        exit(1);
-    }
- 
-    //fprintf(fp, "data1\n");
- 
-    // Scrive la matrice nel file
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            fprintf(fp, "%.6f ", data1[i * cols + j]);  // Stampa con 5 cifre decimali
-        }
-        fprintf(fp, "\n");
-    }
- 
-    //fprintf(fp,"data2\n");
- 
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            fprintf(fp, "%.6f ", data2[i * cols + j]);  // Stampa con 5 cifre decimali
-        }
-        fprintf(fp, "\n");
-    }
- 
-    fclose(fp);
-    printf("Dati salvati con successo nel file '%s'.\n", filename);
-}
 
 int main(int argc, char** argv) {
 	char fname_phi[256];
@@ -1062,8 +915,7 @@ int main(int argc, char** argv) {
 	pst(input);
 	t = clock() - t;
 	time = ((float)t)/CLOCKS_PER_SEC;
-	save_to_txt("../run/output64/pst64.txt", input->phi, input->psi, input->N, 1);//TODO: Eliminare a fine test
-
+	
 	if(!input->silent)
 		printf("PST time = %.3f secs\n", time);
 	else

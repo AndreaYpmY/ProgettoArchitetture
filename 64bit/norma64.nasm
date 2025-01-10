@@ -30,15 +30,14 @@ norma:
     addsd   xmm0, xmm1    
     vsqrtsd xmm0, xmm0
 
-    vmovsd [rsi], xmm0          ; valore di ritorno per riferimento
+    ;vmovsd [rsi], xmm0          ; valore di ritorno per riferimento
 
     
-    ;shufpd  xmm0, xmm0, 0
-    ;vperm2f128  ymm4,   ymm0,   ymm0,   00000000b
-    ;vdivpd  ymm3, ymm4
+    shufpd  xmm0, xmm0, 0
+    vperm2f128  ymm4,   ymm0,   ymm0,   00000000b
+    vdivpd  ymm3, ymm4
 
-    ;vmovapd [z], ymm3
-    ;lea     rdx,    [z]
+    vmovapd [rsi],    ymm3
 
  
     popaq				; ripristina i registri generali
