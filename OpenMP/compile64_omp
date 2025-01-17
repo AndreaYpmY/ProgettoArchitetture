@@ -1,0 +1,7 @@
+#!/bin/bash
+if [[ ! -f sseutils64_omp.nasm ]]; then cp ../../sseutils64_omp.nasm .; fi;
+nasm -f elf64 sseutils64_omp.nasm;
+for f in $(ls *64_omp.nasm); do
+	nasm -f elf64 $f;
+done;
+gcc -fopenmp -m64 -msse -mavx -O0 -no-pie *64_omp.o pst64_omp.c -o pst64_omp -lm

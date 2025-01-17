@@ -46,16 +46,21 @@
 #include <time.h>
 #include <libgen.h>
 #include <xmmintrin.h>
+#include <omp.h>
 
-#define	type		float
+#define	type		double
 #define	MATRIX		type*
 #define	VECTOR		type*
 
 #define random() (((type) rand())/RAND_MAX)
 
+
 type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};		// hydrophobicity
 type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1};		// volume
 type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};		// charge
+
+int number_of_threads = 6;
+
 
 typedef struct {
 	char* seq;		// sequenza di amminoacidi
@@ -76,6 +81,7 @@ typedef struct {
 } params;
 
 
+
 /*
 * 
 *	Le funzioni sono state scritte assumento che le matrici siano memorizzate 
@@ -91,7 +97,7 @@ typedef struct {
 */
 
 void* get_block(int size, int elements) { 
-	return _mm_malloc(elements*size,16); 
+	return _mm_malloc(elements*size,32); 
 }
 
 void free_block(void* p) { 
@@ -277,15 +283,16 @@ void gen_rnd_mat(VECTOR v, int N){
 
 // PROCEDURE ASSEMBLY
 //extern void prova(params* input);
-extern void dist(VECTOR a, VECTOR b, type* dista); // ritorna un solo valore
-extern VECTOR norma(VECTOR v);
-extern void rama(VECTOR phi, VECTOR psi, int n, type* rama_e); // ritorna un solo valore
-extern VECTOR prodmat(type* a, MATRIX b);
+extern void dist(VECTOR a, VECTOR b, type* dist);
+extern void prodmat(VECTOR a, MATRIX b, VECTOR results);
+extern void norma(VECTOR v, VECTOR vn);
+extern void rama(VECTOR phi, VECTOR psi, int n, type* rama_e);
+
 
 
 
 //prodotto scalare
-type prod_scalare(type *a, type *b, int n){
+type p(type *a, type *b, int n){
 	type ris=0.0;
 	for(int i=0; i<n;i++){
 		ris+=a[i]*b[i];
@@ -293,27 +300,24 @@ type prod_scalare(type *a, type *b, int n){
 	return ris;
 }
 
-//coseno
 type coseno(type x){
 	return 1-((x*x)/2)+((x*x*x*x)/24)-((x*x*x*x*x*x)/720);
 }
-
-//seno
 type seno(type x){
 	return x-((x*x*x)/6)+((x*x*x*x*x)/120)-((x*x*x*x*x*x*x)/5040);
 }
 
-//rotation
 void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	const int n=3;
-	type ps = prod_scalare(axis,axis,3);
+	type ps = p(axis, axis, n);
 	for(int k=0; k<n; k++)
 		axis[k] = axis[k]/ps;
 	type a= coseno((theta/2.0));
 	type b= -1*axis[0]*seno((theta/2.0));
 	type c= -1*axis[1]*seno((theta/2.0));
 	type d= -1*axis[2]*seno((theta/2.0));
-	
+
+
 	matrix[0]=a*a+b*b-c*c-d*d;
 	matrix[4]=2*(b*c+a*d);
 	matrix[8]=2*(b*d-a*c);
@@ -328,22 +332,8 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	matrix[11]=0.0;
 }
 
-// moltiplicazione matriciale
-void prod_mat(type* a, MATRIX b, type* ris, int n){
-    int index=0;
-	int k=0;
-    for(int i=0; i<n; i++){
-        ris[i]=0;
-		index=0;
-        for(int j=0; j<n; j++){
-            ris[i]+=a[j]*b[j+index+k];
-            index+=2;
-        }
-		k++;
-    }
-}
 
-//backbone
+// s: sequenza di amminoacidi
 void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	int n = 256; // lunghezza sequenza
 	type r_ca_n = 1.46; //distanza CA-N
@@ -355,17 +345,24 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	type theta_c_n_ca=2.124;
 	type theta_n_ca_c=1.940;
 	
-	//Inizzializzazioni
+
+	//N
 	coords[0] = 0; 
 	coords[1] = 0;
 	coords[2] = 0;
+
+	//C alpha
 	coords[3] = r_ca_n;
 	coords[4] = 0;
 	coords[5] = 0;
 
+	// Vettori e matrici utilizzati
 	type* v1;
 	type* v2;
 	type* v3;
+	VECTOR v1n;
+	VECTOR v2n;
+	VECTOR v3n;
 	MATRIX rot;
 	type* newv;
 	type* vettore_ausilio;
@@ -373,7 +370,12 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	v1 = alloc_matrix(3,1);
 	v2 = alloc_matrix(3,1);
 	v3 = alloc_matrix(3,1);
+	v1n = alloc_matrix(4,1);
+	v2n = alloc_matrix(4,1);
+	v3n = alloc_matrix(4,1);
+
 	rot = alloc_matrix(4,3);
+	newv = alloc_matrix(3,1);
 	vettore_ausilio = alloc_matrix(3,1);
 
 	vettore_ausilio[0] = 0;
@@ -385,7 +387,6 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		int idx= i*9;
 
 		if(i>0){
-
 			//		Posiziona N usando l'ultimo C
 			
 			// [i-1] indice amminoacido precedente, atomi C alpha e C, coordinate x,y,z
@@ -393,15 +394,23 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v1[1] = coords[idx-2]-coords[idx-5];
 			v1[2] = coords[idx-1]-coords[idx-4];
 			
-			//calcolo norma e divisione
-			v1 = norma(v1);
+			// calcola norma
+			/*type norma_v1;
+			norma(v1, &norma_v1);
+			for(int j=0; j<3; j++){
+				v1[j] = v1[j]/norma_v1;
+			}*/
+			norma(v1, v1n);
+
+		
 
 			//rotazione
-			rotation(v1, theta_c_n_ca, rot);
+			rotation(v1n, theta_c_n_ca, rot);
 
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_c_n;
-			newv = prodmat(vettore_ausilio, rot);
+			//prod_mat(vettore_ausilio, rot, newv, 3);
+			prodmat(vettore_ausilio, rot, newv);
 
 			//posiziona N con le coordinate calcolate
 			coords[idx] = coords[idx-3]+newv[0];
@@ -416,15 +425,24 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 			v2[1] = coords[idx+1]-coords[idx-2];
 			v2[2] = coords[idx+2]-coords[idx-1];
 
-			// calcola norma e divisione
-			v2 = norma(v2);
+			// calcola norma
+			/*type norma_v2;
+			norma(v2, &norma_v2);
+			for(int j=0; j<3; j++){
+				v2[j] = v2[j]/norma_v2;
+			}*/
+			norma(v2, v2n);
+		
+			
+			
 
 			//rotazione
-			rotation(v2, phi[i], rot);
+			rotation(v2n, phi[i], rot);
 
 			//moltiplicazione matriciale
 			vettore_ausilio[1] = r_ca_n;
-			newv = prodmat(vettore_ausilio, rot);
+			//prod_mat(vettore_ausilio, rot, newv, 3);
+			prodmat(vettore_ausilio, rot, newv);
 
 			//posiziona C alpha con le coordinate calcolate
 			coords[idx+3] = coords[idx]+newv[0];
@@ -439,15 +457,23 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 		v3[1] = coords[idx+4]-coords[idx+1];
 		v3[2] = coords[idx+5]-coords[idx+2];	
 
-		// calcola norma e divisione
-		v3 = norma(v3);
+		// calcola norma
+		/*type norma_v3;
+		norma(v3, &norma_v3);
+		for(int j=0; j<3; j++){
+			v3[j] = v3[j]/norma_v3;
+		}*/
+		norma(v3, v3n);
 
 		//rotazione
-		rotation(v3, psi[i], rot);
+		rotation(v3n, psi[i], rot);
+
+
 
 		//moltiplicazione matriciale
 		vettore_ausilio[1] = r_ca_c;
-		newv = prodmat(vettore_ausilio, rot);
+		//prod_mat(vettore_ausilio, rot, newv, 3);
+		prodmat(vettore_ausilio, rot, newv);
 
 		//posiziona C con le coordinate calcolate
 		coords[idx+6] = coords[idx+3]+newv[0];
@@ -457,12 +483,13 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 
 	dealloc_matrix(vettore_ausilio);
 	dealloc_matrix(rot);
-}
-
-type min(type a, type b){
-	if(a<b)
-		return a;
-	return b;
+	dealloc_matrix(newv);
+	dealloc_matrix(v1);
+	dealloc_matrix(v2);
+	dealloc_matrix(v3);
+	dealloc_matrix(v1n);
+	dealloc_matrix(v2n);
+	dealloc_matrix(v3n);
 }
 
 
@@ -483,31 +510,53 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
 	type distanza;
-	 
+	
 
-	c_alpha_i =alloc_matrix(3,1);
-	c_alpha_j =alloc_matrix(3,1);
+	/*
+	VECTOR all_c_alpha;
+	all_c_alpha = alloc_matrix(n*3, 1);
+	all_c_alpha = get_C_alpha(coords, n); 
+	*/
 
+
+	omp_set_num_threads(number_of_threads);
+	#pragma omp parallel for private(c_alpha_i, c_alpha_j, distanza) reduction(+ : energy) schedule(dynamic)
 	for(int i=0; i < n; i++){
+
+		c_alpha_i =alloc_matrix(3,1);
+		c_alpha_j =alloc_matrix(3,1);
+		//c_alpha_i = get_C_alpha(coords, i*9);
 		c_alpha_i[0] = all_c_alpha[i*3];
 		c_alpha_i[1] = all_c_alpha[(i*3)+1];
 		c_alpha_i[2] = all_c_alpha[(i*3)+2];
 
 		for(int j=i+1; j<n; j++){
+			//c_alpha_j = get_C_alpha(coords, j*9);
 			c_alpha_j[0] = all_c_alpha[j*3];
 			c_alpha_j[1] = all_c_alpha[(j*3)+1];
 			c_alpha_j[2] = all_c_alpha[(j*3)+2];
 			
+			//printf("C_alpha_i: %lf, %lf, %lf \n", c_alpha_i[0], c_alpha_i[1], c_alpha_i[2]);
+			//printf("C_alpha_j: %lf, %lf, %lf \n", c_alpha_j[0], c_alpha_j[1], c_alpha_j[2]);
+
+			
 			dist(c_alpha_i, c_alpha_j, &distanza);
+			//distanza = dist(c_alpha_i, c_alpha_j);
+			
+			//printf("Distanza %lf \n", distanza);
+			//exit(0);
+
 			if(distanza < 10.0){
-				int index_i = s[i] - 'A';
-				int index_j = s[j] - 'A';
-				energy += (hydrophobicity[index_i]*hydrophobicity[index_j])/distanza;
+			int index_i = s[i] - 'A';
+			int index_j = s[j] - 'A';
+
+			energy += (hydrophobicity[index_i]*hydrophobicity[index_j])/distanza;
 			}
 		}
+		dealloc_matrix(c_alpha_i);
+		dealloc_matrix(c_alpha_j);
 	}
-	dealloc_matrix(c_alpha_i);
-	dealloc_matrix(c_alpha_j);
+	//dealloc_matrix(all_c_alpha);
 	return energy;
 }
 
@@ -519,32 +568,51 @@ type electrostatic_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	VECTOR c_alpha_j;
 	type distanza;
 
-	c_alpha_i =alloc_matrix(3,1);
-	c_alpha_j =alloc_matrix(3,1);
-
+	/*
+	VECTOR all_c_alpha;
+	all_c_alpha = alloc_matrix(n*3, 1);
+	all_c_alpha = get_C_alpha(coords, n); 
+	*/
+	
+	omp_set_num_threads(number_of_threads);
+	#pragma omp parallel for private(c_alpha_i, c_alpha_j, distanza) reduction(+ : energy) schedule(dynamic)
 	for(int i=0; i<n;i++){
+		c_alpha_i =alloc_matrix(3,1);
+		c_alpha_j =alloc_matrix(3,1);
+
+		//printf("Hello World... from thread = %d\n", omp_get_thread_num());
+
 		c_alpha_i[0] = all_c_alpha[i*3];
 		c_alpha_i[1] = all_c_alpha[(i*3)+1];
 		c_alpha_i[2] = all_c_alpha[(i*3)+2];
 
-		int index_i = s[i] - 'A';
-
 		for(int j=i+1; j<n; j++){
+			//c_alpha_i = get_C_alpha(coords, i*9);
+			//c_alpha_j = get_C_alpha(coords, j*9);
+
+			
 			c_alpha_j[0] = all_c_alpha[j*3];
 			c_alpha_j[1] = all_c_alpha[(j*3)+1];
 			c_alpha_j[2] = all_c_alpha[(j*3)+2];
 			
+			//printf("C_alpha_i: %lf, %lf, %lf \n", c_alpha_i[0], c_alpha_i[1], c_alpha_i[2]);
+			//printf("C_alpha_j: %lf, %lf, %lf \n", c_alpha_j[0], c_alpha_j[1], c_alpha_j[2]);
+			//exit(0);
 			dist(c_alpha_i, c_alpha_j, &distanza);
+			//distanza = dist(c_alpha_i, c_alpha_j);
 
+
+			int index_i = s[i] - 'A';
 			int index_j = s[j] - 'A';
 
 			if(i!=j && distanza < 10.0 && charge[index_i]!=0 && charge[index_j]!=0){
 				energy += (charge[index_i]*charge[index_j])/(distanza *4.0);
 			}
 		}
+		dealloc_matrix(c_alpha_i);
+		dealloc_matrix(c_alpha_j);
 	}
-	dealloc_matrix(c_alpha_i);
-	dealloc_matrix(c_alpha_j);
+	//dealloc_matrix(all_c_alpha);
 	return energy;
 }
 
@@ -556,11 +624,13 @@ type packing_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	VECTOR c_alpha_j;
 	type distanza;
 
-	c_alpha_i =alloc_matrix(3,1);
-	c_alpha_j =alloc_matrix(3,1);
-
+	
+	omp_set_num_threads(number_of_threads);
+	#pragma omp parallel for private(c_alpha_i, c_alpha_j, distanza) reduction(+ : energy) schedule(dynamic)
 	for(int i=0; i<n; i++){
 
+		c_alpha_i =alloc_matrix(3,1);
+		c_alpha_j =alloc_matrix(3,1);
 		int index_i = s[i] - 'A';
 		type density=0.0;
 		c_alpha_i[0] = all_c_alpha[i*3];
@@ -569,42 +639,57 @@ type packing_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 
 		for(int j=0; j<n; j++){
 			int index_j = s[j] - 'A';
-
+			//c_alpha_i = get_C_alpha(coords, i*9);
+			//c_alpha_j = get_C_alpha(coords, j*9);
 			c_alpha_j[0] = all_c_alpha[j*3];
 			c_alpha_j[1] = all_c_alpha[(j*3)+1];
 			c_alpha_j[2] = all_c_alpha[(j*3)+2];
 			
+			//printf("C_alpha_i: %lf, %lf, %lf \n", c_alpha_i[0], c_alpha_i[1], c_alpha_i[2]);
+			//printf("C_alpha_j: %lf, %lf, %lf \n", c_alpha_j[0], c_alpha_j[1], c_alpha_j[2]);
+			//exit(0);
 			dist(c_alpha_i, c_alpha_j, &distanza);
+			//distanza = dist(c_alpha_i, c_alpha_j);
 
 			if(i!=j && distanza < 10.0){
 				density += (volume[index_j]/pow(distanza,3));
 			}
 		}
 		energy += pow((volume[index_i]-density),2);
+		dealloc_matrix(c_alpha_i);
+		dealloc_matrix(c_alpha_j);
 	}
-	dealloc_matrix(c_alpha_i);
-	dealloc_matrix(c_alpha_j);
+	
+	//dealloc_matrix(all_c_alpha);
 	return energy;
 }
-
 
 type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	MATRIX coords;
 	coords = alloc_matrix(n*3,3);
-	backbone(s, phi, psi, coords);
 
+	backbone(s, phi, psi, coords);
 	type total_energy=0.0;
-	
 
 	VECTOR all_c_alpha;
+
 	all_c_alpha = alloc_matrix(n*3, 1);
 	all_c_alpha = get_C_alpha(coords, n);
-	
+
+	/*for(int i=0; i<25; i++){
+		printf("Coords[%i]: %f \n ", i, coords[i]);
+	}
+	*/
+
+
 	type rama_e;
 	rama(phi, psi, n, &rama_e);
 	type hydro_e = hydrophobicity_energy(s, coords, n, all_c_alpha);
 	type ele_e = electrostatic_energy(s, coords, n, all_c_alpha);
 	type pack_e = packing_energy(s, coords, n, all_c_alpha);
+
+	//printf("Rama: %f, Hydro: %f, Ele: %f, Pack: %f \n", rama_e, hydro_e, ele_e, pack_e);
+	//exit(0);
 
 	type w_rama = 1.0;
 	type w_hidro = 0.5;
@@ -616,6 +701,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	total_energy += ele_e*w_elec;
 	total_energy += pack_e*w_pack;
 
+	//printf("Energia: %f \n", total_energy);
 	dealloc_matrix(coords);
 	dealloc_matrix(all_c_alpha);
 	return total_energy;
@@ -640,12 +726,13 @@ void pst(params* input){
 
 	
 	E = energy(s, phi, psi, n);
+	//exit (0);
 	int t=0;
 	
 	while (T>0.0){
 		int i = (random() * n);
-		
-		
+	
+			
 		type theta_phi= (random()*2 * M_PI) - M_PI;
 		phi[i]=phi[i]+theta_phi;
 
@@ -653,7 +740,11 @@ void pst(params* input){
 		type theta_psi= (random()*2 * M_PI) - M_PI;
 		psi[i]=psi[i]+theta_psi;
 
+		
+		
 		type E_new = energy(s, phi, psi, n);
+		//exit(0);
+		
 		type delta_E = E_new - E;
 
 		if(delta_E <= 0){
@@ -837,6 +928,7 @@ int main(int argc, char** argv) {
 
 	// COMMENTARE QUESTA RIGA!
 	//prova(input);
+	//
 
 	//
 	// Predizione struttura terziaria
@@ -845,7 +937,7 @@ int main(int argc, char** argv) {
 	pst(input);
 	t = clock() - t;
 	time = ((float)t)/CLOCKS_PER_SEC;
-
+	
 	if(!input->silent)
 		printf("PST time = %.3f secs\n", time);
 	else
