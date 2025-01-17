@@ -57,6 +57,16 @@ type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.
 type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1};		// volume
 type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};		// charge
 
+type r_ca_n = 1.46; //distanza CA-N
+type r_ca_c = 1.52; //distanza CA-C
+type r_c_n = 1.33; //distanza C-N
+	
+//Angoli standard del backbone
+type theta_ca_c_n=2.028;
+type theta_c_n_ca=2.124;
+type theta_n_ca_c=1.940;
+
+
 typedef struct {
 	char* seq;		// sequenza di amminoacidi
 	int N;			// lunghezza sequenza
@@ -328,47 +338,26 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 	matrix[11]=0.0;
 }
 
-// moltiplicazione matriciale
-void prod_mat(type* a, MATRIX b, type* ris, int n){
-    int index=0;
-	int k=0;
-    for(int i=0; i<n; i++){
-        ris[i]=0;
-		index=0;
-        for(int j=0; j<n; j++){
-            ris[i]+=a[j]*b[j+index+k];
-            index+=2;
-        }
-		k++;
-    }
-}
 
 //backbone
-void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
-	int n = 256; // lunghezza sequenza
-	type r_ca_n = 1.46; //distanza CA-N
-	type r_ca_c = 1.52; //distanza CA-C
-	type r_c_n = 1.33; //distanza C-N
+void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords, int n){
 	
-	//Angoli standard del backbone
-	type theta_ca_c_n=2.028;
-	type theta_c_n_ca=2.124;
-	type theta_n_ca_c=1.940;
-	
-	//Inizzializzazioni
+	//N
 	coords[0] = 0; 
 	coords[1] = 0;
 	coords[2] = 0;
+
+	// C alpha
 	coords[3] = r_ca_n;
 	coords[4] = 0;
 	coords[5] = 0;
 
-	type* v1;
-	type* v2;
-	type* v3;
+	VECTOR v1;
+	VECTOR v2;
+	VECTOR v3;
 	MATRIX rot;
-	type* newv;
-	type* vettore_ausilio;
+	VECTOR newv;
+	VECTOR vettore_ausilio;
 	
 	v1 = alloc_matrix(3,1);
 	v2 = alloc_matrix(3,1);
@@ -459,12 +448,6 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 	dealloc_matrix(rot);
 }
 
-type min(type a, type b){
-	if(a<b)
-		return a;
-	return b;
-}
-
 
 VECTOR get_C_alpha(MATRIX coords, int n){
 	VECTOR all_C_alpha;
@@ -514,10 +497,11 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 
 type electrostatic_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	type energy=0.0;
-
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
 	type distanza;
+	int index_i;
+	int index_j;
 
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
@@ -527,7 +511,7 @@ type electrostatic_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 		c_alpha_i[1] = all_c_alpha[(i*3)+1];
 		c_alpha_i[2] = all_c_alpha[(i*3)+2];
 
-		int index_i = s[i] - 'A';
+		index_i = s[i] - 'A';
 
 		for(int j=i+1; j<n; j++){
 			c_alpha_j[0] = all_c_alpha[j*3];
@@ -551,24 +535,25 @@ type electrostatic_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 
 type packing_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	type energy=0.0;
-
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
 	type distanza;
+	int index_i;
+	int index_j;
 
 	c_alpha_i =alloc_matrix(3,1);
 	c_alpha_j =alloc_matrix(3,1);
 
 	for(int i=0; i<n; i++){
 
-		int index_i = s[i] - 'A';
+		index_i = s[i] - 'A';
 		type density=0.0;
 		c_alpha_i[0] = all_c_alpha[i*3];
 		c_alpha_i[1] = all_c_alpha[(i*3)+1];
 		c_alpha_i[2] = all_c_alpha[(i*3)+2];
 
 		for(int j=0; j<n; j++){
-			int index_j = s[j] - 'A';
+			index_j = s[j] - 'A';
 
 			c_alpha_j[0] = all_c_alpha[j*3];
 			c_alpha_j[1] = all_c_alpha[(j*3)+1];
@@ -590,26 +575,25 @@ type packing_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 
 type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	MATRIX coords;
-	coords = alloc_matrix(n*3,3);
-	backbone(s, phi, psi, coords);
-
+	type rama_e;
 	type total_energy=0.0;
-	
-
 	VECTOR all_c_alpha;
-	all_c_alpha = alloc_matrix(n*3, 1);
+	type w_rama = 1.0;
+	type w_hidro = 0.5;
+	type w_elec = 0.2;
+	type w_pack = 0.3;
+
+
+	coords = alloc_matrix(n*3,3);
+	backbone(s, phi, psi, coords, n);
 	all_c_alpha = get_C_alpha(coords, n);
 	
-	type rama_e;
+	
 	rama(phi, psi, n, &rama_e);
 	type hydro_e = hydrophobicity_energy(s, coords, n, all_c_alpha);
 	type ele_e = electrostatic_energy(s, coords, n, all_c_alpha);
 	type pack_e = packing_energy(s, coords, n, all_c_alpha);
 
-	type w_rama = 1.0;
-	type w_hidro = 0.5;
-	type w_elec = 0.2;
-	type w_pack = 0.3;
 
 	total_energy += rama_e*w_rama;
 	total_energy += hydro_e*w_hidro;
@@ -619,11 +603,6 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	dealloc_matrix(coords);
 	dealloc_matrix(all_c_alpha);
 	return total_energy;
-}
-
-type prob_accept(type delta_E, type k, type T){
-	type ris= exp(-delta_E/(k*T));
-	return ris;
 }
 
 
@@ -637,7 +616,10 @@ void pst(params* input){
 	VECTOR phi = input->phi;
 	VECTOR psi = input->psi;
 	type E = input->e;
-
+	type theta_phi;
+	type theta_psi;
+	type E_new;
+	type delta_E;
 	
 	E = energy(s, phi, psi, n);
 	int t=0;
@@ -646,21 +628,21 @@ void pst(params* input){
 		int i = (random() * n);
 		
 		
-		type theta_phi= (random()*2 * M_PI) - M_PI;
+		theta_phi= (random()*2 * M_PI) - M_PI;
 		phi[i]=phi[i]+theta_phi;
 
 		
-		type theta_psi= (random()*2 * M_PI) - M_PI;
+		theta_psi= (random()*2 * M_PI) - M_PI;
 		psi[i]=psi[i]+theta_psi;
 
-		type E_new = energy(s, phi, psi, n);
-		type delta_E = E_new - E;
+		E_new = energy(s, phi, psi, n);
+		delta_E = E_new - E;
 
 		if(delta_E <= 0){
 			//Accetto la nuova configurazione
 			E = E_new;
 		}else{
-			type P = prob_accept(delta_E, k, T);
+			type P = exp(-delta_E/(k*T));
 			type r = random();
 
 			if(r <= P){
