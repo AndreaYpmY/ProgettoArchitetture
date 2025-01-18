@@ -18,8 +18,7 @@ section .data
 
 
 section .bss
-    alignb 32
-        z   resq    1
+
 
 section .text
 
@@ -242,6 +241,7 @@ for:
 
 
     vmovsd [rcx], xmm7          ; valore di ritorno per riferimento
+
 
     popaq				; ripristina i registri generali
 	mov		rsp, rbp	; ripristina lo Stack Pointer

@@ -18,8 +18,7 @@ section .data
 
 
 section .bss
-    alignb 32
-        z   resq    1
+
 
 section .text
 

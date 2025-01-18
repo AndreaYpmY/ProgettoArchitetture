@@ -3,8 +3,6 @@
 section .data
 
 section .bss
-    alignb 16
-    z   resd 1
 
 section .text
 

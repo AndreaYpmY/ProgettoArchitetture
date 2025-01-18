@@ -66,6 +66,11 @@ type theta_ca_c_n=2.028;
 type theta_c_n_ca=2.124;
 type theta_n_ca_c=1.940;
 
+type w_rama = 1.0;
+type w_hidro = 0.5;
+type w_elec = 0.2;
+type w_pack = 0.3;
+
 
 typedef struct {
 	char* seq;		// sequenza di amminoacidi
@@ -359,15 +364,16 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords, int n){
 	VECTOR newv;
 	VECTOR vettore_ausilio;
 	
-	v1 = alloc_matrix(3,1);
-	v2 = alloc_matrix(3,1);
-	v3 = alloc_matrix(3,1);
+	v1 = alloc_matrix(4,1);
+	v2 = alloc_matrix(4,1);
+	v3 = alloc_matrix(4,1);
 	rot = alloc_matrix(4,3);
-	vettore_ausilio = alloc_matrix(3,1);
+	vettore_ausilio = alloc_matrix(4,1);
 
 	vettore_ausilio[0] = 0;
 	vettore_ausilio[1] = 0;
 	vettore_ausilio[2] = 0;
+	vettore_ausilio[3] = 0;
 
 	
 	for (int i = 0; i <n; i++){
@@ -381,7 +387,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords, int n){
 			v1[0] = coords[idx-3]-coords[idx-6]; 
 			v1[1] = coords[idx-2]-coords[idx-5];
 			v1[2] = coords[idx-1]-coords[idx-4];
-			
+			v1[3] = 0;
+
 			//calcolo norma e divisione
 			v1 = norma(v1);
 
@@ -404,6 +411,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords, int n){
 			v2[0] = coords[idx]-coords[idx-3];
 			v2[1] = coords[idx+1]-coords[idx-2];
 			v2[2] = coords[idx+2]-coords[idx-1];
+			v2[3] = 0;
 
 			// calcola norma e divisione
 			v2 = norma(v2);
@@ -426,7 +434,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords, int n){
 		// [i] indice amminoacido corrente, atomi N e C alpha, coordinate x,y,z
 		v3[0] = coords[idx+3]-coords[idx];
 		v3[1] = coords[idx+4]-coords[idx+1];
-		v3[2] = coords[idx+5]-coords[idx+2];	
+		v3[2] = coords[idx+5]-coords[idx+2];
+		v3[3] = 0;	
 
 		// calcola norma e divisione
 		v3 = norma(v3);
@@ -468,8 +477,10 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	type distanza;
 	 
 
-	c_alpha_i =alloc_matrix(3,1);
-	c_alpha_j =alloc_matrix(3,1);
+	c_alpha_i =alloc_matrix(4,1);
+	c_alpha_j =alloc_matrix(4,1);
+	c_alpha_i[3] = 0;
+	c_alpha_j[3] = 0;
 
 	for(int i=0; i < n; i++){
 		c_alpha_i[0] = all_c_alpha[i*3];
@@ -503,8 +514,10 @@ type electrostatic_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	int index_i;
 	int index_j;
 
-	c_alpha_i =alloc_matrix(3,1);
-	c_alpha_j =alloc_matrix(3,1);
+	c_alpha_i =alloc_matrix(4,1);
+	c_alpha_j =alloc_matrix(4,1);
+	c_alpha_i[3] = 0;
+	c_alpha_j[3] = 0;
 
 	for(int i=0; i<n;i++){
 		c_alpha_i[0] = all_c_alpha[i*3];
@@ -541,8 +554,10 @@ type packing_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	int index_i;
 	int index_j;
 
-	c_alpha_i =alloc_matrix(3,1);
-	c_alpha_j =alloc_matrix(3,1);
+	c_alpha_i =alloc_matrix(4,1);
+	c_alpha_j =alloc_matrix(4,1);
+	c_alpha_i[3] = 0;
+	c_alpha_j[3] = 0;
 
 	for(int i=0; i<n; i++){
 
@@ -578,10 +593,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	type rama_e;
 	type total_energy=0.0;
 	VECTOR all_c_alpha;
-	type w_rama = 1.0;
-	type w_hidro = 0.5;
-	type w_elec = 0.2;
-	type w_pack = 0.3;
+	
 
 
 	coords = alloc_matrix(n*3,3);
@@ -620,12 +632,13 @@ void pst(params* input){
 	type theta_psi;
 	type E_new;
 	type delta_E;
+	int i;
 	
 	E = energy(s, phi, psi, n);
 	int t=0;
 	
 	while (T>0.0){
-		int i = (random() * n);
+		i = (random() * n);
 		
 		
 		theta_phi= (random()*2 * M_PI) - M_PI;
@@ -658,8 +671,6 @@ void pst(params* input){
 		T = to-sqrt(alpha*t);
 	}
 	input->e = E;
-	input->phi = phi;
-	input->psi = psi;
 }
 
 
