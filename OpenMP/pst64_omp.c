@@ -475,7 +475,7 @@ VECTOR get_C_alpha(MATRIX coords, int n){
 }
 
 
-type hydrophobicity_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
+type hydrophobicity_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
@@ -488,14 +488,14 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 		c_alpha_i =alloc_matrix(3,1);
 		c_alpha_j =alloc_matrix(3,1);
 
-		c_alpha_i[0] = all_c_alpha[i*3];
-		c_alpha_i[1] = all_c_alpha[(i*3)+1];
-		c_alpha_i[2] = all_c_alpha[(i*3)+2];
+		c_alpha_i[0] = coords[i*9+3];
+		c_alpha_i[1] = coords[i*9+4];
+		c_alpha_i[2] = coords[i*9+5];
 
 		for(int j=i+1; j<n; j++){
-			c_alpha_j[0] = all_c_alpha[j*3];
-			c_alpha_j[1] = all_c_alpha[(j*3)+1];
-			c_alpha_j[2] = all_c_alpha[(j*3)+2];
+			c_alpha_j[0] = coords[j*9+3];
+			c_alpha_j[1] = coords[j*9+4];
+			c_alpha_j[2] = coords[j*9+5];
 	
 			dist(c_alpha_i, c_alpha_j, &distanza);
 
@@ -512,7 +512,7 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 }
 
 
-type electrostatic_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
+type electrostatic_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
@@ -524,17 +524,17 @@ type electrostatic_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 		c_alpha_i =alloc_matrix(3,1);
 		c_alpha_j =alloc_matrix(3,1);
 
-		c_alpha_i[0] = all_c_alpha[i*3];
-		c_alpha_i[1] = all_c_alpha[(i*3)+1];
-		c_alpha_i[2] = all_c_alpha[(i*3)+2];
+		c_alpha_i[0] = coords[i*9+3];
+		c_alpha_i[1] = coords[i*9+4];
+		c_alpha_i[2] = coords[i*9+5];
 
 		int index_i = s[i] - 'A';
 
 		for(int j=i+1; j<n; j++){
 			
-			c_alpha_j[0] = all_c_alpha[j*3];
-			c_alpha_j[1] = all_c_alpha[(j*3)+1];
-			c_alpha_j[2] = all_c_alpha[(j*3)+2];
+			c_alpha_j[0] = coords[j*9+3];
+			c_alpha_j[1] = coords[j*9+4];
+			c_alpha_j[2] = coords[j*9+5];
 			dist(c_alpha_i, c_alpha_j, &distanza);
 
 			
@@ -551,7 +551,7 @@ type electrostatic_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 }
 
 
-type packing_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
+type packing_energy(char* s, MATRIX coords, int n){
 	type energy=0.0;
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
@@ -568,16 +568,16 @@ type packing_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	
 		
 		
-		c_alpha_i[0] = all_c_alpha[i*3];
-		c_alpha_i[1] = all_c_alpha[(i*3)+1];
-		c_alpha_i[2] = all_c_alpha[(i*3)+2];
+		c_alpha_i[0] = coords[i*9+3];
+		c_alpha_i[1] = coords[i*9+4];
+		c_alpha_i[2] = coords[i*9+5];
 
 		for(int j=0; j<n; j++){
 			int index_j = s[j] - 'A';
 	
-			c_alpha_j[0] = all_c_alpha[j*3];
-			c_alpha_j[1] = all_c_alpha[(j*3)+1];
-			c_alpha_j[2] = all_c_alpha[(j*3)+2];
+			c_alpha_j[0] = coords[j*9+3];
+			c_alpha_j[1] = coords[j*9+4];
+			c_alpha_j[2] = coords[j*9+5];
 			
 			dist(c_alpha_i, c_alpha_j, &distanza);
 
@@ -600,7 +600,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	type ele_e;
 	type pack_e;
 	type total_energy=0.0;
-	VECTOR all_c_alpha;
+	//VECTOR all_c_alpha;
 	type w_rama = 1.0;
 	type w_hidro = 0.5;
 	type w_elec = 0.2;
@@ -608,7 +608,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 
 	coords = alloc_matrix(n*3,3);
 	backbone(s, phi, psi, coords, n);
-	all_c_alpha = get_C_alpha(coords, n);
+	//all_c_alpha = get_C_alpha(coords, n);
 
 
 	/*
@@ -642,9 +642,9 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 
 	
 	rama(phi, psi, n, &rama_e);
-	hydro_e = hydrophobicity_energy(s, coords, n, all_c_alpha);
-	ele_e = electrostatic_energy(s, coords, n, all_c_alpha);
-	pack_e = packing_energy(s, coords, n, all_c_alpha);
+	hydro_e = hydrophobicity_energy(s, coords, n);
+	ele_e = electrostatic_energy(s, coords, n);
+	pack_e = packing_energy(s, coords, n);
 	
 
 	total_energy += rama_e*w_rama;
@@ -654,7 +654,7 @@ type energy(char* s, VECTOR phi, VECTOR psi, int n){
 
 
 	dealloc_matrix(coords);
-	dealloc_matrix(all_c_alpha);
+	//dealloc_matrix(all_c_alpha);
 	return total_energy;
 }
 
