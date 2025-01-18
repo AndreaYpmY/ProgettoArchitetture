@@ -1,6 +1,8 @@
 %include "sseutils64.nasm"
 
 section .data
+    align 32
+    zeromask: dq 0.0, 0.0, 0.0, 0.0
 
 section .bss
     alignb 32
@@ -26,7 +28,9 @@ prodmat:
     ; RSI contiene l'indirizzo della matrice
 
     vmovapd ymm0, [rdi]
+    ;vblendpd ymm0, ymm0, [zeromask], 8 ;
 
+    
     vmovapd ymm1, [rsi]     
     vmovapd ymm2, [rsi+32]   
     vmovapd ymm3, [rsi+64]   

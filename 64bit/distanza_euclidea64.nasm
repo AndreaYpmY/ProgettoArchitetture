@@ -1,6 +1,8 @@
 %include "sseutils64.nasm"
 
 section .data
+    align 32
+    zeromask: dq 0.0, 0.0, 0.0, 0.0
 
 section .bss
     alignb 32
@@ -20,9 +22,11 @@ dist:
 	mov		rbp, rsp		; il Base Pointer punta al Record di Attivazione corrente
 	pushaq
 
-
     vmovapd  ymm0, [rdi]        ;vettore primo parametro
     vmovapd  ymm1, [rsi]        ;vettore secondo parametro
+
+    ;vblendpd ymm0, ymm0, [zeromask], 8 ;
+    ;vblendpd ymm1, ymm1, [zeromask], 8 ;
     
     ;vmovupd [z], ymm0
     ;printpd z, 2

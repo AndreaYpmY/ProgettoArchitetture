@@ -328,8 +328,7 @@ void rotation(VECTOR axis, type theta,  MATRIX matrix){
 
 
 // s: sequenza di amminoacidi
-void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
-	int n = 256; // lunghezza sequenza
+void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords, int n){
 	type r_ca_n = 1.46; //distanza CA-N
 	type r_ca_c = 1.52; //distanza CA-C
 	type r_c_n = 1.33; //distanza C-N
@@ -370,11 +369,12 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 
 	rot = alloc_matrix(4,3);
 	newv = alloc_matrix(3,1);
-	vettore_ausilio = alloc_matrix(3,1);
+	vettore_ausilio = alloc_matrix(4,1);
 
 	vettore_ausilio[0] = 0;
 	vettore_ausilio[1] = 0;
 	vettore_ausilio[2] = 0;
+	vettore_ausilio[3] = 0;
 
 	
 	for (int i = 0; i <n; i++){
@@ -487,40 +487,41 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords){
 }
 
 
+VECTOR get_C_alpha(MATRIX coords, int n){
+	VECTOR all_C_alpha;
+	all_C_alpha = alloc_matrix(n*3, 1);
+	for(int i = 0; i< n; i++){
+		all_C_alpha[i*3] = coords[(i*9)+3];
+		all_C_alpha[(i*3)+1] = coords[(i*9)+4];
+		all_C_alpha[(i*3)+2] = coords[(i*9)+5];
+	}
+	return all_C_alpha;
+}
 
-type hydrophobicity_energy(char* s, MATRIX coords, int n){
+type hydrophobicity_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	type energy=0.0;
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
 	type distanza;
-	//VECTOR all_c_alpha;
 
-	//all_c_alpha = alloc_matrix(n*3, 1);
-	//all_c_alpha = get_C_alpha(coords, n); 
-
-	c_alpha_i =alloc_matrix(3,1);
-	c_alpha_j =alloc_matrix(3,1);
+	c_alpha_i =alloc_matrix(4,1);
+	c_alpha_j =alloc_matrix(4,1);
+	c_alpha_i[3] = 0;
+	c_alpha_j[3] = 0;
 
 	for(int i=0; i < n; i++){
-		//c_alpha_i = get_C_alpha(coords, i*9);
-		c_alpha_i[0] = coords[i*9+3];
-		c_alpha_i[1] = coords[i*9+4];
-		c_alpha_i[2] = coords[i*9+5];
+
+		c_alpha_i[0] = all_c_alpha[i*3];
+		c_alpha_i[1] = all_c_alpha[(i*3)+1];
+		c_alpha_i[2] = all_c_alpha[(i*3)+2];
 
 		for(int j=i+1; j<n; j++){
-			//c_alpha_j = get_C_alpha(coords, j*9);
-			c_alpha_j[0] = coords[j*9+3];
-			c_alpha_j[1] = coords[j*9+4];
-			c_alpha_j[2] = coords[j*9+5];
 			
-			//printf("C_alpha_i: %lf, %lf, %lf \n", c_alpha_i[0], c_alpha_i[1], c_alpha_i[2]);
-			//printf("C_alpha_j: %lf, %lf, %lf \n", c_alpha_j[0], c_alpha_j[1], c_alpha_j[2]);
+			c_alpha_j[0] = all_c_alpha[j*3];
+			c_alpha_j[1] = all_c_alpha[(j*3)+1];
+			c_alpha_j[2] = all_c_alpha[(j*3)+2];
 
 			dist(c_alpha_i, c_alpha_j, &distanza);
-			//distanza = dist(c_alpha_i, c_alpha_j);
-			
-			//printf("Distanza %lf \n", distanza);
-			//exit(0);
 
 			if(distanza < 10.0){
 			int index_i = s[i] - 'A';
@@ -531,46 +532,34 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n){
 	}
 	dealloc_matrix(c_alpha_i);
 	dealloc_matrix(c_alpha_j);
-	//dealloc_matrix(all_c_alpha);
 	return energy;
 }
 
 
-type electrostatic_energy(char* s, MATRIX coords, int n){
+type electrostatic_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	type energy=0.0;
 
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
 	type distanza;
 
-	//VECTOR all_c_alpha;
-
-	//all_c_alpha = alloc_matrix(n*3, 1);
-	//all_c_alpha = get_C_alpha(coords, n); 
-
-	c_alpha_i =alloc_matrix(3,1);
-	c_alpha_j =alloc_matrix(3,1);
+	c_alpha_i =alloc_matrix(4,1);
+	c_alpha_j =alloc_matrix(4,1);
+	c_alpha_i[3] = 0;
+	c_alpha_j[3] = 0;
 
 	for(int i=0; i<n;i++){
-		c_alpha_i[0] = coords[i*9+3];
-		c_alpha_i[1] = coords[i*9+4];
-		c_alpha_i[2] = coords[i*9+5];
+		c_alpha_i[0] = all_c_alpha[i*3];
+		c_alpha_i[1] = all_c_alpha[(i*3)+1];
+		c_alpha_i[2] = all_c_alpha[(i*3)+2];
 
 		for(int j=i+1; j<n; j++){
-			//c_alpha_i = get_C_alpha(coords, i*9);
-			//c_alpha_j = get_C_alpha(coords, j*9);
 
-			
-			c_alpha_j[0] = coords[j*9+3];
-			c_alpha_j[1] = coords[j*9+4];
-			c_alpha_j[2] = coords[j*9+5];
-			
-			//printf("C_alpha_i: %lf, %lf, %lf \n", c_alpha_i[0], c_alpha_i[1], c_alpha_i[2]);
-			//printf("C_alpha_j: %lf, %lf, %lf \n", c_alpha_j[0], c_alpha_j[1], c_alpha_j[2]);
-			//exit(0);
+			c_alpha_j[0] = all_c_alpha[j*3];
+			c_alpha_j[1] = all_c_alpha[(j*3)+1];
+			c_alpha_j[2] = all_c_alpha[(j*3)+2];
+
 			dist(c_alpha_i, c_alpha_j, &distanza);
-			//distanza = dist(c_alpha_i, c_alpha_j);
-
 
 			int index_i = s[i] - 'A';
 			int index_j = s[j] - 'A';
@@ -582,47 +571,38 @@ type electrostatic_energy(char* s, MATRIX coords, int n){
 	}
 	dealloc_matrix(c_alpha_i);
 	dealloc_matrix(c_alpha_j);
-	//dealloc_matrix(all_c_alpha);
 	return energy;
 }
 
 
-type packing_energy(char* s, MATRIX coords, int n){
+type packing_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	type energy=0.0;
 
 	VECTOR c_alpha_i;
 	VECTOR c_alpha_j;
 	type distanza;
 
-	//VECTOR all_c_alpha;
-
-	//all_c_alpha = alloc_matrix(n*3, 1);
-	//all_c_alpha = get_C_alpha(coords, n);
-
-	c_alpha_i =alloc_matrix(3,1);
-	c_alpha_j =alloc_matrix(3,1);
+	c_alpha_i =alloc_matrix(4,1);
+	c_alpha_j =alloc_matrix(4,1);
+	c_alpha_i[3] = 0;
+	c_alpha_j[3] = 0;
 
 	for(int i=0; i<n; i++){
 
 		int index_i = s[i] - 'A';
 		type density=0.0;
-		c_alpha_i[0] = coords[i*9+3];
-		c_alpha_i[1] = coords[i*9+4];
-		c_alpha_i[2] = coords[i*9+5];
+		c_alpha_i[0] = all_c_alpha[i*3];
+		c_alpha_i[1] = all_c_alpha[(i*3)+1];
+		c_alpha_i[2] = all_c_alpha[(i*3)+2];
 
 		for(int j=0; j<n; j++){
 			int index_j = s[j] - 'A';
-			//c_alpha_i = get_C_alpha(coords, i*9);
-			//c_alpha_j = get_C_alpha(coords, j*9);
-			c_alpha_j[0] = coords[j*9+3];
-			c_alpha_j[1] = coords[j*9+4];
-			c_alpha_j[2] = coords[j*9+5];
+
+			c_alpha_j[0] = all_c_alpha[j*3];
+			c_alpha_j[1] = all_c_alpha[(j*3)+1];
+			c_alpha_j[2] = all_c_alpha[(j*3)+2];
 			
-			//printf("C_alpha_i: %lf, %lf, %lf \n", c_alpha_i[0], c_alpha_i[1], c_alpha_i[2]);
-			//printf("C_alpha_j: %lf, %lf, %lf \n", c_alpha_j[0], c_alpha_j[1], c_alpha_j[2]);
-			//exit(0);
 			dist(c_alpha_i, c_alpha_j, &distanza);
-			//distanza = dist(c_alpha_i, c_alpha_j);
 
 			if(i!=j && distanza < 10.0){
 				density += (volume[index_j]/pow(distanza,3));
@@ -632,45 +612,37 @@ type packing_energy(char* s, MATRIX coords, int n){
 	}
 	dealloc_matrix(c_alpha_i);
 	dealloc_matrix(c_alpha_j);
-	//dealloc_matrix(all_c_alpha);
 	return energy;
 }
 
 type energy(char* s, VECTOR phi, VECTOR psi, int n){
 	MATRIX coords;
-	coords = alloc_matrix(n*3,3);
-
-	backbone(s, phi, psi, coords);
-	type total_energy=0.0;
-
-	/*for(int i=0; i<25; i++){
-		printf("Coords[%i]: %f \n ", i, coords[i]);
-	}
-	*/
-
-
 	type rama_e;
-	rama(phi, psi, n, &rama_e);
-	//type rama_e =rama_energy(phi, psi, n);
-	type hydro_e = hydrophobicity_energy(s, coords, n);
-	type ele_e = electrostatic_energy(s, coords, n);
-	type pack_e = packing_energy(s, coords, n);
-
-	//printf("Rama: %f, Hydro: %f, Ele: %f, Pack: %f \n", rama_e, hydro_e, ele_e, pack_e);
-	//exit(0);
-
+	type total_energy=0.0;
+	VECTOR all_c_alpha;
 	type w_rama = 1.0;
 	type w_hidro = 0.5;
 	type w_elec = 0.2;
 	type w_pack = 0.3;
+
+	coords = alloc_matrix(n*3,3);
+	backbone(s, phi, psi, coords, n);
+	all_c_alpha = get_C_alpha(coords, n);
+
+
+	rama(phi, psi, n, &rama_e);
+	type hydro_e = hydrophobicity_energy(s, coords, n, all_c_alpha);
+	type ele_e = electrostatic_energy(s, coords, n, all_c_alpha);
+	type pack_e = packing_energy(s, coords, n, all_c_alpha);
 
 	total_energy += rama_e*w_rama;
 	total_energy += hydro_e*w_hidro;
 	total_energy += ele_e*w_elec;
 	total_energy += pack_e*w_pack;
 
-	//printf("Energia: %f \n", total_energy);
+
 	dealloc_matrix(coords);
+	dealloc_matrix(all_c_alpha);
 	return total_energy;
 }
 
