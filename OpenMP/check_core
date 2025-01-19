@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Questo script esegue il programma pst64_omp con un numero crescente di thread
+# e si ferma quando il tempo medio peggiora rispetto al miglior tempo trovato.
+
+# ATTENZIONE: Non molto efficiente.
+# Todo: Non stampa lo 0 prima del punto nei tempi
+
+# Numero di esecuzioni per ciascun numero di thread
+TOT_RUNS=5
+# Valore iniziale dei thread
+START_THREADS=2
+# Numero massimo di thread da testare
+MAX_THREADS=12
+# Percorso del programma
+PROGRAM="./pst64_omp"
+# Parametri fissi per l'esecuzione del programma
+PARAMS="-seq ../seq_256.ds2 -to 20 -alpha 1 -k 1 -sd 3"
+
+# Variabili per tracciare il miglior tempo e il numero di thread
+best_time=999999
+best_threads=0
+
+# Funzione per eseguire il programma e ottenere il tempo
+get_time() {
+  output=$($PROGRAM $PARAMS -t $1)  # Eseguo il programma
+  # Estraggo il tempo dalla stringa "PST time = 2.020 secs"
+  echo "$output" | grep -oP 'PST time = \K[0-9]+.[0-9]+'  # Ottieni il tempo
+}
+
+# Loop per provare diversi numeri di thread
+for ((threads=$START_THREADS; threads<=$MAX_THREADS; threads++)); do
+  total_time=0
+  echo "Testing with $threads threads"
+  # Eseguo il programma TOT_RUNS volte per ottenere la media
+  for ((i=1; i<=$TOT_RUNS; i++)); do
+    run_time=$(get_time $threads)  # Eseguo e ottieni il tempo
+    echo "Run $i: $run_time secs"
+    total_time=$(echo "$total_time + $run_time" | bc -l)  # Aggiungi il tempo
+  done
+
+  # Calcola la media dei tempi per questo numero di thread
+  average_time=$(echo "$total_time / $TOT_RUNS" | bc -l)
+
+  # Stampa il risultato per il numero di thread corrente
+  echo "Threads: $threads, Average Time: $average_time secs"
+
+  # Se il tempo medio con il numero di thread corrente è migliore, aggiorna
+  if (( $(echo "$average_time <= $best_time" | bc -l) )); then
+    best_time=$average_time
+    best_threads=$threads
+  else
+    # Se il tempo peggiora, fermati
+    echo "Stopping, best thread count is $best_threads with time $best_time"
+    break
+  fi
+done
+
+# Ritorna il miglior numero di thread e il miglior tempo
+echo "Best Number of Threads: $best_threads"
+echo "Best Time: $best_time secs"

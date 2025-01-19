@@ -72,7 +72,7 @@ type w_hidro = 0.5;
 type w_elec = 0.2;
 type w_pack = 0.3;
 
-int number_of_threads = 2;
+int number_of_threads=1;
 
 typedef struct {
 	char* seq;		// sequenza di amminoacidi
@@ -382,7 +382,6 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords, int n){
 	vettore_ausilio[1] = 0;
 	vettore_ausilio[2] = 0;
 	vettore_ausilio[3] = 0;
-
 	
 	for (int i = 0; i <n; i++){
 		int idx= i*9;
@@ -407,10 +406,11 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords, int n){
 			prodmat(vettore_ausilio, rot, newv);
 
 			//posiziona N con le coordinate calcolate
+			
 			coords[idx] = coords[idx-3]+newv[0];
 			coords[idx+1] = coords[idx-2]+newv[1];
 			coords[idx+2] = coords[idx-1]+newv[2];
-
+			
 
 			//		Posiziona C alpha usando phi
 
@@ -434,6 +434,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords, int n){
 			coords[idx+3] = coords[idx]+newv[0];
 			coords[idx+4] = coords[idx+1]+newv[1];
 			coords[idx+5] = coords[idx+2]+newv[2];
+			
 		}
 
 		//		Posiziona C usasndo psi
@@ -458,6 +459,7 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords, int n){
 		coords[idx+6] = coords[idx+3]+newv[0];
 		coords[idx+7] = coords[idx+4]+newv[1];
 		coords[idx+8] = coords[idx+5]+newv[2];
+		
 	}
 
 	dealloc_matrix(vettore_ausilio);
@@ -475,6 +477,8 @@ void backbone(char* s, VECTOR phi, VECTOR psi, MATRIX coords, int n){
 VECTOR get_C_alpha(MATRIX coords, int n){
 	VECTOR all_C_alpha;
 	all_C_alpha = alloc_matrix(n*3, 1);
+
+	#pragma omp parallel for schedule(dynamic)
 	for(int i = 0; i< n; i++){
 		all_C_alpha[i*3] = coords[(i*9)+3];
 		all_C_alpha[(i*3)+1] = coords[(i*9)+4];
@@ -491,7 +495,6 @@ type hydrophobicity_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	type distanza;
 
 	
-	omp_set_num_threads(number_of_threads);
 	#pragma omp parallel for private(c_alpha_i, c_alpha_j, distanza) reduction(+ : energy) schedule(dynamic)
 	for(int i=0; i < n; i++){
 		c_alpha_i =alloc_matrix(4,1);
@@ -529,7 +532,6 @@ type electrostatic_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	VECTOR c_alpha_j;
 	type distanza;
 
-	omp_set_num_threads(number_of_threads);
 	#pragma omp parallel for private(c_alpha_i, c_alpha_j, distanza) reduction(+ : energy) schedule(dynamic)
 	for(int i=0; i<n;i++){
 		c_alpha_i =alloc_matrix(4,1);
@@ -570,7 +572,6 @@ type packing_energy(char* s, MATRIX coords, int n, VECTOR all_c_alpha){
 	VECTOR c_alpha_j;
 	type distanza;	
 
-	omp_set_num_threads(number_of_threads);
 	#pragma omp parallel for private(c_alpha_i, c_alpha_j, distanza) reduction(+ : energy) schedule(dynamic)
 	for(int i=0; i<n; i++){
 		c_alpha_i =alloc_matrix(4,1);
@@ -821,11 +822,24 @@ int main(int argc, char** argv) {
 			}
 			input->sd = atoi(argv[par]);
 			par++;
+		}else if (strcmp(argv[par],"-t") == 0) {   // AGGIUNTO PARAMETRO PER IL NUMERO DI THREAD
+			par++;
+			if (par >= argc) {
+				printf("Missing number of threads value!\n");
+				exit(1);
+			}
+			number_of_threads = atoi(argv[par]);
+			par++;
 		}else{
 			printf("WARNING: unrecognized parameter '%s'!\n",argv[par]);
 			par++;
 		}
 	}
+
+	// Valuta quanti thread utilizzare
+	//number_of_threads = omp_get_max_threads();
+	// Imposto il numero di thread
+	omp_set_num_threads(number_of_threads);
 
 	//
 	// Legge i dati e verifica la correttezza dei parametri
@@ -885,10 +899,19 @@ int main(int argc, char** argv) {
 	//
 	// Predizione struttura terziaria
 	//
-	t = clock();
+	
+	 
+	//t = clock();
+	//pst(input);
+	//t = clock() - t;
+	//time = ((float)t)/CLOCKS_PER_SEC;
+
+	float start_time, end_time;
+	start_time = omp_get_wtime();
 	pst(input);
-	t = clock() - t;
-	time = ((float)t)/CLOCKS_PER_SEC;
+	end_time= omp_get_wtime();
+	time = end_time - start_time;
+
 	
 	if(!input->silent)
 		printf("PST time = %.3f secs\n", time);
