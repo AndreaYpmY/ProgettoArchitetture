@@ -23,18 +23,18 @@ norma:
 
     mov eax, [ebp + a]
 
-    movaps  xmm0, [eax]
-    movaps  xmm1, xmm0
-    mulps   xmm0, xmm0
-    haddps  xmm0, xmm0
-    haddps  xmm0, xmm0
-    sqrtss  xmm0, xmm0
+    movaps  xmm0, [eax] ; xmm0 contiene il vettore a
+    movaps  xmm1, xmm0 ; faccio una copia di xmm0 in xmm1
+    mulps   xmm0, xmm0 ; a[i] = a[i] * a[i]
+    haddps  xmm0, xmm0 
+    haddps  xmm0, xmm0 ; a = a[0] + a[1] + a[2] + a[3]
+    sqrtss  xmm0, xmm0 ; norma = sqrt(a)
 
-    shufps  xmm0, xmm0, 0
+    shufps  xmm0, xmm0, 0 ; copio il valore finale della norma in tutte le posizioni
 
-    divps  xmm1, xmm0
+    divps  xmm1, xmm0 ; divido il vettore iniziale per la norma
     movaps  [z], xmm1
-    lea eax , [z]
+    lea eax , [z] ; salvo l'indirizzo di z in eax
 
  
     pop	edi		

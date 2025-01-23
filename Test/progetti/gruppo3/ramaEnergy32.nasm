@@ -89,7 +89,7 @@ for:
     haddps  xmm0,   xmm0
     haddps  xmm0,   xmm0
 
-    addps   xmm7,   xmm0
+    addps   xmm7,   xmm0 ; somma+=energy
 
     ; -------------------------
 
@@ -237,7 +237,7 @@ for:
 
     add ecx,    16
     cmp ecx,    edi
-    jb   for
+    jb   for ; ripeto il ciclo finchè ecx < edi
 
     mov eax, [ebp + e]
     movss [eax], xmm7

@@ -20,23 +20,20 @@ dist:
 	push		esi
 	push		edi
 
-    ;distance euclidea tra due vettori
-    ;distanza = sqrt((x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2)
+    mov eax, [ebp + a] 
+    mov ecx, [ebp + b] 
 
-    mov eax, [ebp + a]
-    mov ecx, [ebp + b]
+    movaps  xmm0, [eax] ; xmm0 contiene il primo vettore a
+    movaps  xmm1, [ecx] ; xmm1 contiene il secondo vettore b
 
-    movaps  xmm0, [eax]
-    movaps  xmm1, [ecx]
-
-    subps   xmm0, xmm1
-    mulps   xmm0, xmm0
-    haddps  xmm0, xmm0
-    haddps  xmm0, xmm0
-    sqrtss  xmm0, xmm0
+    subps   xmm0, xmm1 ; a[i] = a[i] - b[i]
+    mulps   xmm0, xmm0 ; a[i] = a[i] * a[i]
+    haddps  xmm0, xmm0 
+    haddps  xmm0, xmm0 ; a = a[0] + a[1] + a[2] + a[3]
+    sqrtss  xmm0, xmm0 ; dista = sqrt(a)
 
     mov eax, [ebp + dista]
-    movss [eax], xmm0
+    movss [eax], xmm0 ; valore di ritorno per riferimento
 
     pop	edi		
 	pop	esi

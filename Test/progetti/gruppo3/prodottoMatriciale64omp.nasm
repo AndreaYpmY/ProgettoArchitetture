@@ -16,20 +16,23 @@ prodmat:
     mov		rbp, rsp			
     pushaq	
 
-    ; RDI contiene l'indirizzo del vettore
-    ; RSI contiene l'indirizzo della matrice
 
+    ; Vettore di 4 elementi (1 di padding)
     vmovapd ymm0, [rdi]
 
+    ; Matrice 3x4 elementi (3 di padding)
     vmovapd ymm1, [rsi]     
     vmovapd ymm2, [rsi+32]   
     vmovapd ymm3, [rsi+64]   
 
+    ; Moltiplicazione tutti gli elementi di ymm0 e ymm1
     vmulpd ymm1, ymm0       
-    vhaddpd ymm1, ymm1       
+    vhaddpd ymm1, ymm1  
     VPERM2F128 ymm4, ymm1, ymm1,00000001b
-    vaddsd xmm1, xmm4
-    vmovsd [rdx], xmm1   
+    vaddsd xmm1, xmm4 ; somma di tutti gli elementi
+    vmovsd [rdx], xmm1 ; salvo il primo elemento in rdx
+
+    ; ripeto il procedimento sia per ymm2 che per ymm3 
 
     vmulpd ymm2, ymm0
     vhaddpd ymm2, ymm2
